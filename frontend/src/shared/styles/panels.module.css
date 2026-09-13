@@ -1,0 +1,366 @@
+.panel {
+  background: white;
+  border: 1px solid #e0e6d8;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 20px 23px;
+  border-bottom: 1px solid #e5edde;
+  flex-wrap: wrap;
+}
+
+.search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid #dce6d0;
+  background: white;
+  border-radius: 7px;
+  padding: 10px 12px;
+  color: #799562;
+  flex: 1;
+  max-width: 290px;
+  min-width: 190px;
+}
+
+.search input {
+  border: 0;
+  outline: none;
+  background: transparent;
+  font-size: 0.875rem;
+  min-width: 0;
+  width: 100%;
+  color: #536c40;
+}
+
+.search:focus-within {
+  outline: 2px solid #a6c778;
+  outline-offset: 2px;
+}
+
+.fleetName {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  text-align: left;
+}
+
+.fleetName strong {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #424b3b;
+}
+
+.fleetName small {
+  display: block;
+  font-size: 0.75rem;
+  color: #7e9a66;
+  margin-top: 3px;
+}
+
+.fuel {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #6e8c55;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+}
+
+.fuel meter,
+.fuel div {
+  width: 45px;
+}
+
+.summary {
+  padding: 16px 23px;
+  border-top: 1px solid #e4edd9;
+  color: #7b9862;
+  font-size: 0.75rem;
+}
+
+.requestCard {
+  background: #fff;
+  border: 1px solid #dfe6d5;
+  border-radius: 9px;
+  padding: 17px;
+  margin-bottom: 11px;
+}
+
+.requestUrgent {
+  border-color: #e0c4a7;
+  background: #fffefa;
+}
+
+.requestTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 11px;
+  font-size: 0.75rem;
+  color: #81976d;
+}
+
+.urgentLabel {
+  font-size: 0.75rem;
+  border-radius: 4px;
+  background: #faecda;
+  padding: 3px 6px;
+  color: #9a6b37;
+}
+
+.assignedLabel {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  color: #638441;
+  font-size: 0.75rem;
+}
+
+.requestCard h3 {
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.requestLocation {
+  font-size: 0.75rem;
+  color: #727a6b;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 5px;
+}
+
+.priorityWindow {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: #927343;
+  margin-top: 7px;
+}
+
+.requestBottom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 15px;
+  gap: 8px;
+}
+
+.requestBottom > span {
+  font-size: 0.75rem;
+  border: 1px solid #e1ead7;
+  color: #7a9665;
+  border-radius: 4px;
+  padding: 3px 6px;
+}
+
+.roundArrow {
+  width: 30px;
+  height: 30px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: #eff5e6;
+  color: #6d8a4d;
+}
+
+.roundArrow:hover {
+  background: #d2f478;
+  color: #344d1c;
+}
+
+.requestsToolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 22px;
+  flex-wrap: wrap;
+}
+
+.requestsGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 20px;
+}
+
+.requestsGrid .requestCard {
+  padding: 23px;
+  margin: 0;
+}
+
+.sectionTitle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+  gap: 12px;
+}
+
+.sectionTitle h2 {
+  font-size: 1.2rem;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.subtleBadge {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 0.875rem;
+  color: #728e58;
+}
+
+.dispatchers {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 20px;
+}
+
+.dispatcher {
+  padding: 24px;
+}
+
+.dispatcherTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 22px;
+}
+
+.dispatcher h2 {
+  font-size: 1.2rem;
+}
+
+.dispatcher > p {
+  font-size: 0.875rem;
+  color: #7d9964;
+  margin-top: 4px;
+}
+
+.dispatcherBottom {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  border-top: 1px solid #e2ecd7;
+  padding-top: 18px;
+  margin-top: 22px;
+  font-size: 0.875rem;
+}
+
+.crewHeading {
+  margin-top: 35px;
+}
+
+.cellSmall {
+  display: block;
+  font-size: 0.75rem;
+  color: #819e69;
+  margin-top: 3px;
+}
+
+.serviceBanner {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  background: #eaf1df;
+  border: 1px solid #d7e4c5;
+  border-radius: 11px;
+  padding: 25px 30px;
+  margin-bottom: 25px;
+}
+
+.serviceIcon {
+  height: 58px;
+  width: 58px;
+  border: 1px solid #cbdcb4;
+  background: #e0ecd0;
+  color: #688f40;
+  display: grid;
+  place-items: center;
+  border-radius: 12px;
+}
+
+.serviceBanner h2 {
+  font-size: 1.2rem;
+  color: #4f7132;
+}
+
+.serviceBanner p {
+  font-size: 0.875rem;
+  color: #718f56;
+  margin-top: 6px;
+}
+
+.serviceNumber {
+  font-size: 2.6rem;
+  letter-spacing: -0.055em;
+  color: #688e40;
+  margin-left: auto;
+}
+
+.serviceGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 22px;
+}
+
+.serviceCard {
+  padding: 26px;
+}
+
+.serviceCardHeading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.serviceWork {
+  border-top: 1px solid #e5eddd;
+  border-bottom: 1px solid #e5eddd;
+  padding: 22px 0;
+  margin: 23px 0;
+}
+
+.serviceDue {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-top: 16px;
+  font-size: 0.875rem;
+  color: #a48659;
+}
+
+@media (max-width: 1130px) {
+  .requestsGrid,
+  .dispatchers {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 767px) {
+  .requestsGrid,
+  .serviceGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .search {
+    max-width: none;
+  }
+
+  .toolbar > div:first-child {
+    width: 100%;
+  }
+}

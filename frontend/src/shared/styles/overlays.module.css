@@ -1,0 +1,246 @@
+.sheet,
+.dialog {
+  position: fixed;
+  z-index: 50;
+}
+
+.backdrop {
+  position: fixed;
+  inset: 0;
+  background: #1b211866;
+  z-index: 50;
+}
+
+.sheet {
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: min(100%, 480px);
+  background: #fff;
+  border-left: 1px solid #d7e2ca;
+  overflow-y: auto;
+  z-index: 51;
+}
+
+.header {
+  padding: 23px 28px 26px;
+  border-bottom: 1px solid #e1ebd5;
+  background: #f8fbf2;
+}
+
+.kicker {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.eyebrow {
+  font-size: 0.75rem;
+  letter-spacing: 0.09em;
+  color: #859178;
+}
+
+.vehicleArt {
+  height: 130px;
+  width: 100%;
+  display: grid;
+  place-items: center;
+  color: #7d9e5e;
+  margin: 9px 0;
+  background: radial-gradient(ellipse, #e9f1dc 0, transparent 68%);
+}
+
+.name {
+  font-size: 1.9rem;
+  letter-spacing: -0.04em;
+  line-height: 1.2;
+}
+
+.description {
+  color: #677c54;
+  font-size: 0.875rem;
+  margin: 6px 0 10px;
+}
+
+.body {
+  padding: 26px 28px;
+}
+
+.stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.stats > div {
+  padding: 16px;
+  border: 1px solid #dfead2;
+  background: #fdfefa;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.stats strong {
+  font-size: 1.7rem;
+  letter-spacing: -0.04em;
+  color: #507136;
+  font-weight: 500;
+}
+
+.capacity {
+  display: flex;
+  gap: 9px;
+  align-items: center;
+  font-size: 0.875rem;
+  color: #7c9867;
+  padding: 20px 0;
+  border-bottom: 1px solid #e3ecd8;
+  margin-bottom: 25px;
+}
+
+.body h3 {
+  font-size: 1rem;
+  margin: 24px 0 12px;
+  color: #506c37;
+}
+
+.driver {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 25px;
+}
+
+.job {
+  background: #eff6e2;
+  border: 1px solid #d7e7c0;
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 14px;
+}
+
+.job header {
+  display: flex;
+  justify-content: space-between;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: #78965a;
+}
+
+.detailEmpty {
+  border: 1px dashed #d6e3c4;
+  padding: 23px 16px;
+  border-radius: 8px;
+  color: #7f9b69;
+  margin-bottom: 20px;
+}
+
+.serviceBox {
+  border-top: 1px solid #e3eed4;
+  margin-top: 24px;
+}
+
+.dialogWrap {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+}
+
+.dialog {
+  position: relative;
+  width: min(100%, 520px);
+  background: white;
+  border: 1px solid #d4e2c2;
+  border-radius: 16px;
+  padding: 28px;
+  max-height: 92svh;
+  overflow-y: auto;
+  z-index: 61;
+}
+
+.dialogIcon {
+  width: 43px;
+  height: 43px;
+  display: grid;
+  place-items: center;
+  background: #e4f2cc;
+  color: #60863f;
+  border-radius: 11px;
+}
+
+.dialog h2 {
+  font-size: 1.75rem;
+  font-weight: 500;
+  letter-spacing: -0.04em;
+  color: #3a5622;
+}
+
+.brief {
+  border: 1px solid #dbe7cd;
+  border-radius: 9px;
+  background: #f9fcf3;
+  padding: 19px;
+  margin: 18px 0;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  margin-top: 18px;
+}
+
+.formRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.notice {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 15px;
+  border-radius: 7px;
+  background: #faf4ea;
+  color: #9a815b;
+  font-size: 0.875rem;
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.events {
+  padding: 0 17px 24px;
+}
+
+.event {
+  display: flex;
+  align-items: flex-start;
+  gap: 19px;
+  padding: 22px 0;
+  border-bottom: 1px solid #e3edd7;
+}
+
+@media (max-width: 767px) {
+  .dialog {
+    padding: 22px;
+  }
+
+  .formRow,
+  .actions {
+    grid-template-columns: 1fr;
+    flex-wrap: wrap;
+  }
+}
