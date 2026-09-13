@@ -346,6 +346,15 @@
   margin-bottom: 28px;
 }
 
+.pageActions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
 .pageEyebrow {
   display: flex;
   align-items: center;

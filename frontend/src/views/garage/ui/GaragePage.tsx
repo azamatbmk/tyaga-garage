@@ -7,6 +7,7 @@ import { pendingRequests } from "@/entities/request";
 import { countByStatus, type Status } from "@/entities/vehicle";
 import { AssignRequestDialog, useAssignRequest } from "@/features/assign-request";
 import { CreateRequestDialog, useCreateRequest } from "@/features/create-request";
+import { ExportGarageButton } from "@/features/export-garage";
 import { useFinishService } from "@/features/finish-service";
 import { NAV, PAGE_COPY, type WorkspaceSection } from "@/shared/config";
 import { ui } from "@/shared/ui";
@@ -105,10 +106,13 @@ export function GaragePage() {
               </h1>
               <p>{PAGE_COPY[section]}</p>
             </div>
-            <button className={ui.primaryButton} onClick={create.start}>
-              <Plus size={19} />
-              Новая заявка
-            </button>
+            <div className={styles.pageActions}>
+              <ExportGarageButton />
+              <button type="button" className={ui.primaryButton} onClick={create.start}>
+                <Plus size={19} />
+                Новая заявка
+              </button>
+            </div>
           </div>
 
           {section === "dispatch" && (

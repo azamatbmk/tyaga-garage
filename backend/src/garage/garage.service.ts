@@ -11,6 +11,7 @@ import {
   INITIAL_JOBS,
   INITIAL_REQUESTS,
 } from './seed.js';
+import { buildGarageExcel, garageExcelFilename } from './garage-excel.js';
 import type {
   GarageEvent,
   GarageSnapshot,
@@ -160,6 +161,14 @@ export class GarageService {
       'Обслуживание завершено · техника готова к выезду',
     );
     return this.getSnapshot();
+  }
+
+  async exportExcel() {
+    const snapshot = this.getSnapshot();
+    return {
+      filename: garageExcelFilename(snapshot),
+      buffer: await buildGarageExcel(snapshot),
+    };
   }
 
   private addEvent(

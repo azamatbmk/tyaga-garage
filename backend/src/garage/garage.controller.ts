@@ -1,4 +1,12 @@
-import { Body, Controller, Get, Param, ParseIntPipe, Post } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  ParseIntPipe,
+  Post,
+  StreamableFile,
+} from '@nestjs/common';
 import { AssignRequestDto } from './dto/assign-request.dto.js';
 import { CreateRequestDto } from './dto/create-request.dto.js';
 import { GarageService } from './garage.service.js';
@@ -10,6 +18,16 @@ export class GarageController {
   @Get('garage')
   getGarage() {
     return this.garage.getSnapshot();
+  }
+
+  @Get('garage/export')
+  async exportGarage() {
+    const file = await this.garage.exportExcel();
+    return new StreamableFile(file.buffer, {
+      type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      disposition: `attachment; filename="${file.filename}"`,
+      length: file.buffer.length,
+    });
   }
 
   @Post('requests')

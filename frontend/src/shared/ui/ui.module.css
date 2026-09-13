@@ -46,6 +46,12 @@
   box-shadow: 0 4px 12px #7a9b3730;
 }
 
+.primaryButton:disabled,
+.secondaryButton:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
 .secondaryButton {
   border: 1px solid #dce4d2;
   background: #fff;

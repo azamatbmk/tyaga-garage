@@ -37,6 +37,26 @@ describe('Garage API (e2e)', () => {
     expect(response.body.requests).toHaveLength(3);
   });
 
+  it('/api/garage/export (GET)', async () => {
+    const response = await request(app.getHttpServer())
+      .get('/api/garage/export')
+      .buffer(true)
+      .parse((res, callback) => {
+        const chunks: Buffer[] = [];
+        res.on('data', (chunk) => chunks.push(Buffer.from(chunk)));
+        res.on('end', () => callback(null, Buffer.concat(chunks)));
+      });
+
+    expect(response.status).toBe(200);
+    expect(response.headers['content-type']).toContain(
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    );
+    expect(response.headers['content-disposition']).toContain(
+      'tyaga-smena-2026-09-12.xlsx',
+    );
+    expect(response.body.subarray(0, 2).toString()).toBe('PK');
+  });
+
   afterEach(async () => {
     await app.close();
   });
