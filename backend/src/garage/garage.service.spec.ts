@@ -40,6 +40,19 @@ describe('GarageService', () => {
     });
   });
 
+  it('rejects an invalid clock time', () => {
+    expect(() =>
+      service.createRequest({
+        title: 'Ночная смена',
+        location: 'База',
+        category: 'Экскаватор-погрузчик',
+        start: '08:99',
+        end: '17:00',
+        urgent: false,
+      }),
+    ).toThrow(BadRequestException);
+  });
+
   it('returns a vehicle from service to the ready pool', () => {
     const snapshot = service.finishService('06');
     expect(snapshot.fleet.find((item) => item.id === '06')?.status).toBe('ready');

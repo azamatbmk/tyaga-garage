@@ -22,11 +22,11 @@ export class CreateRequestDto {
   category: string;
 
   @IsString()
-  @Matches(/^\d{2}:\d{2}$/)
+  @Matches(/^([01]\d|2[0-3]):[0-5]\d$/)
   start: string;
 
   @IsString()
-  @Matches(/^\d{2}:\d{2}$/)
+  @Matches(/^([01]\d|2[0-3]):[0-5]\d$/)
   end: string;
 
   @IsBoolean()

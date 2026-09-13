@@ -61,7 +61,8 @@ export function DispatchBoard({
     service: fleet.filter((item) => item.status === "service").length,
   };
   const pending = requests.filter((item) => !item.assigned);
-  const load = Math.round((counts.working / (fleet.length - counts.service)) * 100);
+  const operable = fleet.length - counts.service;
+  const load = operable === 0 ? 0 : Math.round((counts.working / operable) * 100);
   const visibleFleet = allSchedule ? fleet : fleet.slice(0, 6);
 
   return (

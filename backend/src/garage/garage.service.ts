@@ -28,6 +28,16 @@ function clone<T>(value: T): T {
 
 function toHours(value: string): number {
   const [hours, minutes] = value.split(':').map(Number);
+  if (
+    !Number.isFinite(hours) ||
+    !Number.isFinite(minutes) ||
+    hours < 0 ||
+    hours > 23 ||
+    minutes < 0 ||
+    minutes > 59
+  ) {
+    throw new BadRequestException('Некорректное время');
+  }
   return hours + minutes / 60;
 }
 
