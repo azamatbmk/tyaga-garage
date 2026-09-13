@@ -1,0 +1,35 @@
+---
+description: Писать фронт только по Feature-Sliced Design
+alwaysApply: true
+---
+
+# FSD — обязательная архитектура фронта
+
+Весь новый и изменяемый код в `frontend/` пиши по Feature-Sliced Design. Не складывай логику в `components/` или `lib/` вне слоёв.
+
+## Слои (импорт только снизу вверх)
+
+```
+frontend/app            Next: layout, providers, маршруты
+frontend/src/views      сборка экрана (не называй папку pages — конфликт с Next)
+frontend/src/widgets    составные блоки: сайдбар, доски, шиты
+frontend/src/features   действия: создать заявку, назначить, закрыть ТО
+frontend/src/entities   техника, заявка, гараж
+frontend/src/shared     UI-кит, api-клиент, утилиты, стили
+```
+
+Слайс снаружи импортируй только через `index.ts`.
+
+```ts
+// плохо
+import { RequestCard } from "@/entities/request/ui/request-card";
+
+// хорошо
+import { RequestCard } from "@/entities/request";
+```
+
+## Стек, который не менять без просьбы
+
+- стили: CSS-модули, без Tailwind и без Shadcn
+- пакеты: npm
+- бэкенд: Nest в `backend/`, не тащи FSD-папки на API
