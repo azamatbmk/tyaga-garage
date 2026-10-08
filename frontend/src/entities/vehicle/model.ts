@@ -7,6 +7,8 @@ export type Vehicle = {
   plate: string;
   driver: string;
   initials: string;
+  driverId: string;
+  branchId: string;
   status: Status;
   fuel: number;
   hours: number;

@@ -129,6 +129,12 @@
   font-weight: 600;
 }
 
+.requestMeta {
+  margin-top: 8px;
+  font-size: 0.75rem;
+  color: #89947e;
+}
+
 .requestLocation {
   font-size: 0.75rem;
   color: #727a6b;
@@ -363,4 +369,45 @@
   .toolbar > div:first-child {
     width: 100%;
   }
+}
+
+.simpleTableWrap {
+  background: white;
+  border: 1px solid #e0e6d8;
+  border-radius: 12px;
+  overflow: auto;
+}
+
+.simpleTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+
+.simpleTable th,
+.simpleTable td {
+  text-align: left;
+  padding: 14px 18px;
+  border-bottom: 1px solid #e8eee0;
+  vertical-align: top;
+}
+
+.simpleTable th {
+  font-size: 0.75rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #89947e;
+  background: #f7f9f3;
+  font-weight: 600;
+}
+
+.simpleTable tr:last-child td {
+  border-bottom: 0;
+}
+
+.driverSelect {
+  margin-top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }

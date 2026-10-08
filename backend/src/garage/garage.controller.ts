@@ -7,6 +7,7 @@ import {
   Post,
   StreamableFile,
 } from '@nestjs/common';
+import { AssignDriverDto } from './dto/assign-driver.dto.js';
 import { AssignRequestDto } from './dto/assign-request.dto.js';
 import { CreateRequestDto } from './dto/create-request.dto.js';
 import { GarageService } from './garage.service.js';
@@ -41,6 +42,11 @@ export class GarageController {
     @Body() dto: AssignRequestDto,
   ) {
     return this.garage.assignRequest(id, dto.vehicleId);
+  }
+
+  @Post('fleet/:id/assign-driver')
+  assignDriver(@Param('id') id: string, @Body() dto: AssignDriverDto) {
+    return this.garage.assignDriver(id, dto);
   }
 
   @Post('fleet/:id/finish-service')

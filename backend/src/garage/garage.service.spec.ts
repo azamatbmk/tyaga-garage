@@ -57,4 +57,27 @@ describe('GarageService', () => {
     const snapshot = service.finishService('06');
     expect(snapshot.fleet.find((item) => item.id === '06')?.status).toBe('ready');
   });
+
+  it('reassigns a driver on a vehicle', () => {
+    const snapshot = service.assignDriver('01', { driverId: 'd13' });
+    const vehicle = snapshot.fleet.find((item) => item.id === '01');
+    expect(vehicle?.driverId).toBe('d13');
+    expect(vehicle?.driver).toBe('Кирилл Малов');
+  });
+
+  it('attaches creator and branch when creating a request', () => {
+    const snapshot = service.createRequest({
+      title: 'От механика',
+      location: 'База',
+      category: 'Экскаватор-погрузчик',
+      start: '13:00',
+      end: '17:00',
+      urgent: false,
+      creatorId: 'u-mechanic',
+    });
+    expect(snapshot.requests[0]).toMatchObject({
+      creatorId: 'u-mechanic',
+      branchId: 'b1',
+    });
+  });
 });

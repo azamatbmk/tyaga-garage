@@ -3,11 +3,13 @@
 import { useState, type FormEvent } from "react";
 import { useGarage } from "@/entities/garage";
 import { vehicleCategories } from "@/entities/vehicle";
+import { useRole } from "@/shared/model/role-store";
 import { useToast } from "@/shared/ui";
 import { createRequest } from "../api/create-request";
 
 export function useCreateRequest() {
   const { snapshot, setSnapshot } = useGarage();
+  const { persona } = useRole();
   const { showToast } = useToast();
   const [open, setOpen] = useState(false);
   const categories = snapshot ? vehicleCategories(snapshot.fleet) : [];
@@ -35,6 +37,7 @@ export function useCreateRequest() {
         start: String(form.get("start")),
         end: String(form.get("end")),
         urgent: priority === "urgent",
+        creatorId: persona.staffId,
       });
       setSnapshot(next);
       close();

@@ -5,28 +5,37 @@ import { Plus } from "lucide-react";
 import { useGarage } from "@/entities/garage";
 import { pendingRequests } from "@/entities/request";
 import { countByStatus, type Status } from "@/entities/vehicle";
+import { useAssignDriver } from "@/features/assign-driver";
 import { AssignRequestDialog, useAssignRequest } from "@/features/assign-request";
 import { CreateRequestDialog, useCreateRequest } from "@/features/create-request";
 import { ExportGarageButton } from "@/features/export-garage";
 import { useFinishService } from "@/features/finish-service";
-import { NAV, PAGE_COPY, type WorkspaceSection } from "@/shared/config";
+import { usePrintWaybill } from "@/features/print-waybill";
+import { RoleSwitcher, useRole } from "@/features/switch-role";
+import { DISPATCHER_NAV, PAGE_COPY, type WorkspaceSection } from "@/shared/config";
 import { ui } from "@/shared/ui";
 import { DispatchBoard } from "@/widgets/dispatch-board";
 import { EventsSheet } from "@/widgets/events-sheet";
 import { FleetPanel } from "@/widgets/fleet-panel";
+import { FuelBoard } from "@/widgets/fuel-board";
 import { Header } from "@/widgets/header";
 import { RequestsBoard } from "@/widgets/requests-board";
 import { ServiceBoard } from "@/widgets/service-board";
 import { Sidebar } from "@/widgets/sidebar";
 import { TeamBoard } from "@/widgets/team-board";
+import { TimesheetBoard } from "@/widgets/timesheet-board";
 import { VehicleSheet } from "@/widgets/vehicle-sheet";
+import { WaybillsBoard } from "@/widgets/waybills-board";
 import styles from "@/shared/styles/layout.module.css";
 
 export function GaragePage() {
   const { snapshot, error } = useGarage();
+  const { persona } = useRole();
   const assign = useAssignRequest();
   const create = useCreateRequest();
   const finish = useFinishService();
+  const drivers = useAssignDriver();
+  const { printWaybill } = usePrintWaybill();
 
   const [section, setSection] = useState<WorkspaceSection>("dispatch");
   const [menuOpen, setMenuOpen] = useState(false);
@@ -73,16 +82,20 @@ export function GaragePage() {
   const pending = pendingRequests(snapshot.requests);
   const serviceCount = countByStatus(snapshot.fleet).service;
   const activeVehicle = snapshot.fleet.find((vehicle) => vehicle.id === selected) ?? null;
+  const sectionLabel = DISPATCHER_NAV.find((item) => item.id === section)?.label ?? "Диспетчерская";
 
   return (
     <div className={styles.root}>
       {menuOpen && <button className={styles.backdrop} aria-label="Закрыть меню" onClick={() => setMenuOpen(false)} />}
       <Sidebar
         view={section}
+        nav={DISPATCHER_NAV}
         onNavigate={navigate}
         pending={pending.length}
         service={serviceCount}
         dispatchers={snapshot.dispatchers}
+        persona={persona}
+        branchName={snapshot.branch.name}
         open={menuOpen}
       />
       <div className={styles.shell}>
@@ -92,16 +105,17 @@ export function GaragePage() {
           onOpenMenu={() => setMenuOpen(true)}
           onOpenEvents={openEvents}
           onOpenTeam={() => navigate("team")}
+          roleSwitcher={<RoleSwitcher />}
         />
         <main className={styles.workspace}>
           <div className={styles.pageHeading}>
             <div>
               <div className={styles.pageEyebrow}>
                 <span className={styles.liveDot} />
-                ОСНОВНОЙ ГАРАЖ / СМЕНА 08:00–20:00
+                {snapshot.branch.name.toUpperCase()} / СМЕНА 08:00–20:00
               </div>
               <h1 className={styles.heading}>
-                {NAV.find((item) => item.id === section)?.label}
+                {sectionLabel}
                 <span className={styles.headingDot}>.</span>
               </h1>
               <p>{PAGE_COPY[section]}</p>
@@ -154,6 +168,24 @@ export function GaragePage() {
               onOpen={(request) => (request.assigned ? setSelected(request.assigned) : startAssign(request))}
             />
           )}
+          {section === "waybills" && (
+            <WaybillsBoard
+              waybills={snapshot.waybills}
+              fleet={snapshot.fleet}
+              drivers={snapshot.drivers}
+              onPrint={(waybill, vehicle) =>
+                printWaybill({
+                  waybill,
+                  vehicle,
+                  branchName: snapshot.branch.name,
+                })
+              }
+            />
+          )}
+          {section === "timesheet" && (
+            <TimesheetBoard entries={snapshot.timesheet} drivers={snapshot.drivers} />
+          )}
+          {section === "fuel" && <FuelBoard fuelings={snapshot.fuelings} fleet={snapshot.fleet} />}
           {section === "team" && (
             <TeamBoard dispatchers={snapshot.dispatchers} fleet={snapshot.fleet} onSelect={setSelected} />
           )}
@@ -170,9 +202,11 @@ export function GaragePage() {
         vehicle={activeVehicle}
         jobs={snapshot.jobs}
         pending={pending}
+        drivers={snapshot.drivers}
         onClose={() => setSelected(null)}
         onAssign={startAssign}
         onFinishService={finish.complete}
+        onChangeDriver={drivers.changeDriver}
       />
       <AssignRequestDialog
         request={assign.request}

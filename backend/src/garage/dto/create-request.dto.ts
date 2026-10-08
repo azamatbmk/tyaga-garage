@@ -1,5 +1,6 @@
 import {
   IsBoolean,
+  IsOptional,
   IsString,
   Matches,
   MaxLength,
@@ -31,4 +32,9 @@ export class CreateRequestDto {
 
   @IsBoolean()
   urgent: boolean;
+
+  @IsOptional()
+  @IsString()
+  @MinLength(1)
+  creatorId?: string;
 }

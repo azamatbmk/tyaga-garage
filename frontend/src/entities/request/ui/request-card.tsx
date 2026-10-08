@@ -7,9 +7,13 @@ import type { RequestItem } from "../model";
 export function RequestCard({
   request,
   onOpen,
+  meta,
+  readOnly = false,
 }: {
   request: RequestItem;
-  onOpen: () => void;
+  onOpen?: () => void;
+  meta?: string;
+  readOnly?: boolean;
 }) {
   return (
     <article className={cx(styles.requestCard, request.urgent && styles.requestUrgent)}>
@@ -33,6 +37,7 @@ export function RequestCard({
         <MapPin size={13} />
         {request.location}
       </p>
+      {meta && <p className={styles.requestMeta}>{meta}</p>}
       {request.urgent && (
         <p className={styles.priorityWindow}>
           <Clock3 size={12} />
@@ -41,17 +46,22 @@ export function RequestCard({
       )}
       <div className={styles.requestBottom}>
         <span>{request.category}</span>
-        <button
-          className={styles.roundArrow}
-          aria-label={
-            request.assigned
-              ? `Открыть технику заявки ${request.id}`
-              : `Назначить технику на заявку ${request.id}`
-          }
-          onClick={onOpen}
-        >
-          <ArrowUpRight size={18} />
-        </button>
+        {!readOnly && onOpen && (
+          <button
+            className={styles.roundArrow}
+            aria-label={
+              request.assigned
+                ? `Открыть технику заявки ${request.id}`
+                : `Назначить технику на заявку ${request.id}`
+            }
+            onClick={onOpen}
+          >
+            <ArrowUpRight size={18} />
+          </button>
+        )}
+        {readOnly && (
+          <span className={ui.mono}>{request.assigned ? "В работе" : "В очереди"}</span>
+        )}
       </div>
     </article>
   );

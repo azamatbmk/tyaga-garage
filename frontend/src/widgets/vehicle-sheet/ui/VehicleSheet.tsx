@@ -8,27 +8,32 @@ import {
   Timer,
   X,
 } from "lucide-react";
-import type { Job } from "@/entities/garage";
+import type { Driver, Job } from "@/entities/garage";
 import type { RequestItem } from "@/entities/request";
 import { StatusBadge, VehicleIcon, type Vehicle } from "@/entities/vehicle";
 import { formatTime } from "@/shared/lib";
-import { Avatar, Progress, SidePanel, ui } from "@/shared/ui";
+import { Avatar, Progress, SelectField, SidePanel, ui } from "@/shared/ui";
 import styles from "@/shared/styles/overlays.module.css";
+import panelStyles from "@/shared/styles/panels.module.css";
 
 export function VehicleSheet({
   vehicle,
   jobs,
   pending,
+  drivers,
   onClose,
   onAssign,
   onFinishService,
+  onChangeDriver,
 }: {
   vehicle: Vehicle | null;
   jobs: Job[];
   pending: RequestItem[];
+  drivers?: Driver[];
   onClose: () => void;
   onAssign: (request: RequestItem, preferred: string) => void;
   onFinishService: (vehicle: Vehicle) => void;
+  onChangeDriver?: (vehicleId: string, driverId: string) => void;
 }) {
   const vehicleJobs = jobs.filter((job) => job.vehicle === vehicle?.id);
 
@@ -85,6 +90,19 @@ export function VehicleSheet({
               </div>
               <ShieldCheck size={20} />
             </div>
+            {drivers && onChangeDriver && (
+              <div className={panelStyles.driverSelect}>
+                <SelectField
+                  label="Сменить водителя"
+                  value={vehicle.driverId}
+                  onChange={(driverId) => onChangeDriver(vehicle.id, driverId)}
+                  options={drivers.map((driver) => ({
+                    value: driver.id,
+                    label: `${driver.fullName} · ${driver.licenseCategory}`,
+                  }))}
+                />
+              </div>
+            )}
             <h3>Задачи на смену</h3>
             {vehicleJobs.map((job) => (
               <div className={styles.job} key={job.id}>

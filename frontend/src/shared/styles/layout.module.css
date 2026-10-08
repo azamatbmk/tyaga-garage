@@ -286,6 +286,34 @@
   gap: 22px;
 }
 
+.roleSwitcher {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.75rem;
+  color: #6e7b5f;
+}
+
+.roleSwitcherLabel {
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #89947e;
+}
+
+.roleSwitcher select {
+  max-width: 180px;
+  border: 1px solid #dce4d2;
+  border-radius: 6px;
+  background: #f7f9f3;
+  color: #2f3a2c;
+  padding: 6px 8px;
+  font: inherit;
+}
+
+.roleSwitcherHint {
+  display: none;
+}
+
 .demoBadge {
   font-size: 0.75rem;
   border: 1px solid #dce4d2;
@@ -422,6 +450,15 @@
 @media (max-width: 1130px) {
   .topbarDate {
     display: none;
+  }
+
+  .roleSwitcherLabel,
+  .roleSwitcherHint {
+    display: none;
+  }
+
+  .roleSwitcher select {
+    max-width: 140px;
   }
 }
 

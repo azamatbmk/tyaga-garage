@@ -3,25 +3,36 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import { AssignDriverDto } from './dto/assign-driver.dto.js';
 import { CreateRequestDto } from './dto/create-request.dto.js';
 import {
+  DEMO_BRANCH,
+  DEMO_STAFF,
   DISPATCHERS,
+  INITIAL_DRIVERS,
   INITIAL_EVENTS,
   INITIAL_FLEET,
+  INITIAL_FUELINGS,
   INITIAL_JOBS,
   INITIAL_REQUESTS,
+  INITIAL_TIMESHEET,
+  INITIAL_WAYBILLS,
 } from './seed.js';
 import { buildGarageExcel, garageExcelFilename } from './garage-excel.js';
 import type {
+  Fueling,
   GarageEvent,
   GarageSnapshot,
   Job,
   Request,
+  TimesheetEntry,
   Vehicle,
+  Waybill,
 } from './garage.types.js';
 
 const DEMO_DATE = '2026-09-12';
 const DEMO_TIME = '10:45';
+const DEFAULT_CREATOR_ID = 'u-dept';
 
 function clone<T>(value: T): T {
   return structuredClone(value);
@@ -48,15 +59,25 @@ export class GarageService {
   private jobs: Job[] = clone(INITIAL_JOBS);
   private requests: Request[] = clone(INITIAL_REQUESTS);
   private events: GarageEvent[] = clone(INITIAL_EVENTS);
+  private drivers = clone(INITIAL_DRIVERS);
+  private waybills: Waybill[] = clone(INITIAL_WAYBILLS);
+  private timesheet: TimesheetEntry[] = clone(INITIAL_TIMESHEET);
+  private fuelings: Fueling[] = clone(INITIAL_FUELINGS);
 
   getSnapshot(): GarageSnapshot {
     return {
       demo: true,
       date: DEMO_DATE,
       snapshotTime: DEMO_TIME,
+      branch: clone(DEMO_BRANCH),
+      staff: clone(DEMO_STAFF),
+      drivers: clone(this.drivers),
       fleet: clone(this.fleet),
       jobs: clone(this.jobs),
       requests: clone(this.requests),
+      waybills: clone(this.waybills),
+      timesheet: clone(this.timesheet),
+      fuelings: clone(this.fuelings),
       events: clone(this.events),
       dispatchers: clone(DISPATCHERS),
     };
@@ -72,6 +93,12 @@ export class GarageService {
     const categories = [...new Set(this.fleet.map((vehicle) => vehicle.category))];
     if (!categories.includes(dto.category)) {
       throw new BadRequestException('Неизвестный тип техники');
+    }
+
+    const creatorId = dto.creatorId ?? DEFAULT_CREATOR_ID;
+    const creator = DEMO_STAFF.find((user) => user.id === creatorId);
+    if (!creator) {
+      throw new BadRequestException('Неизвестный заявитель');
     }
 
     const start = toHours(dto.start);
@@ -92,6 +119,8 @@ export class GarageService {
         start,
         end,
         urgent: dto.urgent,
+        branchId: creator.branchId,
+        creatorId: creator.id,
       },
       ...this.requests,
     ];
@@ -140,6 +169,34 @@ export class GarageService {
     this.addEvent(
       `Заявка № ${request.id} распределена`,
       `${vehicle.name} · ${vehicle.driver}`,
+    );
+    return this.getSnapshot();
+  }
+
+  assignDriver(vehicleId: string, dto: AssignDriverDto): GarageSnapshot {
+    const vehicle = this.fleet.find((item) => item.id === vehicleId);
+    if (!vehicle) {
+      throw new NotFoundException('Техника не найдена');
+    }
+
+    const driver = this.drivers.find((item) => item.id === dto.driverId);
+    if (!driver) {
+      throw new BadRequestException('Водитель не найден');
+    }
+
+    this.fleet = this.fleet.map((item) =>
+      item.id === vehicleId
+        ? {
+            ...item,
+            driverId: driver.id,
+            driver: driver.fullName,
+            initials: driver.initials,
+          }
+        : item,
+    );
+    this.addEvent(
+      `${vehicle.name}: сменён водитель`,
+      `${driver.fullName} · кат. ${driver.licenseCategory}`,
     );
     return this.getSnapshot();
   }
