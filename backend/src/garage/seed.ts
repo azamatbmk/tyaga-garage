@@ -15,6 +15,10 @@ import type {
 export const DEMO_BRANCH: Branch = {
   id: 'b1',
   name: 'Основной филиал',
+  legalName: 'ГУП «ТЯГА»',
+  address: '693000, г. Южно-Сахалинск, ул. Гаражная, д. 1',
+  phone: '+7 (4242) 00-00-01',
+  ogrn: '1026500532109',
 };
 
 export const DEMO_STAFF: StaffUser[] = [
@@ -62,21 +66,52 @@ export const DEMO_STAFF: StaffUser[] = [
   },
 ];
 
+function driver(
+  id: string,
+  fullName: string,
+  initials: string,
+  licenseCategory: string,
+  licenseSeries: string,
+  licenseNumber: string,
+  licenseIssuedAt: string,
+  snils: string,
+): Driver {
+  return {
+    id,
+    fullName,
+    initials,
+    licenseCategory,
+    licenseSeries,
+    licenseNumber,
+    licenseIssuedAt,
+    snils,
+  };
+}
+
 export const INITIAL_DRIVERS: Driver[] = [
-  { id: 'd01', fullName: 'Алексей Соколов', initials: 'АС', licenseCategory: 'C, E' },
-  { id: 'd02', fullName: 'Дмитрий Козлов', initials: 'ДК', licenseCategory: 'C' },
-  { id: 'd03', fullName: 'Игорь Волков', initials: 'ИВ', licenseCategory: 'C, E' },
-  { id: 'd04', fullName: 'Олег Морозов', initials: 'ОМ', licenseCategory: 'C' },
-  { id: 'd05', fullName: 'Павел Орлов', initials: 'ПО', licenseCategory: 'B, C' },
-  { id: 'd06', fullName: 'Виктор Белов', initials: 'ВБ', licenseCategory: 'C' },
-  { id: 'd07', fullName: 'Андрей Петров', initials: 'АП', licenseCategory: 'C, E' },
-  { id: 'd08', fullName: 'Сергей Романов', initials: 'СР', licenseCategory: 'C' },
-  { id: 'd09', fullName: 'Роман Лебедев', initials: 'РЛ', licenseCategory: 'C' },
-  { id: 'd10', fullName: 'Максим Егоров', initials: 'МЕ', licenseCategory: 'B, C' },
-  { id: 'd11', fullName: 'Антон Фролов', initials: 'АФ', licenseCategory: 'C' },
-  { id: 'd12', fullName: 'Николай Зайцев', initials: 'НЗ', licenseCategory: 'C' },
-  { id: 'd13', fullName: 'Кирилл Малов', initials: 'КМ', licenseCategory: 'C, E' },
+  driver('d01', 'Алексей Соколов', 'АС', 'C, E', '65 АА', '123456', '2018-04-12', '112-233-445 66'),
+  driver('d02', 'Дмитрий Козлов', 'ДК', 'C', '65 АВ', '234567', '2019-06-03', '223-344-556 77'),
+  driver('d03', 'Игорь Волков', 'ИВ', 'C, E', '65 АС', '345678', '2017-11-21', '334-455-667 88'),
+  driver('d04', 'Олег Морозов', 'ОМ', 'C', '65 АЕ', '456789', '2020-02-14', '445-566-778 99'),
+  driver('d05', 'Павел Орлов', 'ПО', 'B, C', '65 АК', '567890', '2021-08-09', '556-677-889 00'),
+  driver('d06', 'Виктор Белов', 'ВБ', 'C', '65 АМ', '678901', '2016-05-30', '667-788-990 11'),
+  driver('d07', 'Андрей Петров', 'АП', 'C, E', '65 АН', '789012', '2018-09-17', '778-899-001 22'),
+  driver('d08', 'Сергей Романов', 'СР', 'C', '65 АР', '890123', '2019-12-05', '889-900-112 33'),
+  driver('d09', 'Роман Лебедев', 'РЛ', 'C', '65 АТ', '901234', '2020-07-22', '990-011-223 44'),
+  driver('d10', 'Максим Егоров', 'МЕ', 'B, C', '65 АУ', '012345', '2022-01-18', '001-122-334 55'),
+  driver('d11', 'Антон Фролов', 'АФ', 'C', '65 АХ', '112233', '2017-03-11', '112-233-445 67'),
+  driver('d12', 'Николай Зайцев', 'НЗ', 'C', '65 АЧ', '223344', '2015-10-28', '223-344-556 78'),
+  driver('d13', 'Кирилл Малов', 'КМ', 'C, E', '65 АШ', '334455', '2021-04-07', '334-455-667 89'),
 ];
+
+const WAYBILL_ISSUER = {
+  issuerName: DEMO_BRANCH.legalName,
+  issuerAddress: DEMO_BRANCH.address,
+  issuerPhone: DEMO_BRANCH.phone,
+  issuerOgrn: DEMO_BRANCH.ogrn,
+};
+
+const SPECIAL_CARRIAGE = 'передвижение и работа специальных транспортных средств' as const;
 
 export const INITIAL_FLEET: Vehicle[] = [
   {
@@ -351,34 +386,90 @@ export const INITIAL_REQUESTS: Request[] = [
   },
 ];
 
+function waybillFrom(
+  id: string,
+  vehicleId: string,
+  driverId: string,
+  vehicleType: string,
+  vehicleBrandModel: string,
+  vehiclePlate: string,
+  odometerStart: number,
+  odometerEnd: number | undefined,
+  departureAt: string,
+  returnAt: string | undefined,
+): Waybill {
+  const driverRow = INITIAL_DRIVERS.find((item) => item.id === driverId);
+  if (!driverRow) {
+    throw new Error(`Driver ${driverId} missing in seed`);
+  }
+  return {
+    id,
+    vehicleId,
+    driverId,
+    validFrom: '2026-09-08',
+    validTo: '2026-09-14',
+    ...WAYBILL_ISSUER,
+    vehicleType,
+    vehicleBrandModel,
+    vehiclePlate,
+    techControlAt: '2026-09-08T07:40:00',
+    techControlResult: 'Исправен, выпуск разрешён',
+    techControllerName: 'В. Громов',
+    departureAt,
+    returnAt,
+    odometerStart,
+    odometerEnd,
+    driverName: driverRow.fullName,
+    licenseSeries: driverRow.licenseSeries,
+    licenseNumber: driverRow.licenseNumber,
+    licenseIssuedAt: driverRow.licenseIssuedAt,
+    licenseCategory: driverRow.licenseCategory,
+    snils: driverRow.snils,
+    medicalExamAt: '2026-09-08T07:25:00',
+    medicalExamResult: 'Допущен к управлению ТС',
+    medicName: 'С. Иванова',
+    carriageKind: SPECIAL_CARRIAGE,
+    messageKind: 'городское',
+  };
+}
+
 export const INITIAL_WAYBILLS: Waybill[] = [
-  {
-    id: 'w-01',
-    vehicleId: '01',
-    driverId: 'd01',
-    driverName: 'Алексей Соколов',
-    licenseCategory: 'C, E',
-    weekStart: '2026-09-08',
-    odometerStart: 124580,
-  },
-  {
-    id: 'w-03',
-    vehicleId: '03',
-    driverId: 'd03',
-    driverName: 'Игорь Волков',
-    licenseCategory: 'C, E',
-    weekStart: '2026-09-08',
-    odometerStart: 98240,
-  },
-  {
-    id: 'w-07',
-    vehicleId: '07',
-    driverId: 'd07',
-    driverName: 'Андрей Петров',
-    licenseCategory: 'C, E',
-    weekStart: '2026-09-08',
-    odometerStart: 156110,
-  },
+  waybillFrom(
+    'w-01',
+    '01',
+    'd01',
+    'Экскаватор-погрузчик',
+    'JCB 3CX',
+    'А 123 АА · 15',
+    124580,
+    undefined,
+    '2026-09-08T08:00:00',
+    undefined,
+  ),
+  waybillFrom(
+    'w-03',
+    '03',
+    'd03',
+    'Самосвал',
+    'КАМАЗ 65115',
+    'М 789 ММ · 15',
+    98240,
+    98410,
+    '2026-09-08T08:05:00',
+    '2026-09-12T18:40:00',
+  ),
+  waybillFrom(
+    'w-07',
+    '07',
+    'd07',
+    'Самосвал',
+    'MAN TGS',
+    'Н 518 НН · 15',
+    156110,
+    undefined,
+    '2026-09-08T07:55:00',
+    undefined,
+  ),
 ];
 
 export const INITIAL_TIMESHEET: TimesheetEntry[] = [

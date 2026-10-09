@@ -10,7 +10,7 @@ import { AssignRequestDialog, useAssignRequest } from "@/features/assign-request
 import { CreateRequestDialog, useCreateRequest } from "@/features/create-request";
 import { ExportGarageButton } from "@/features/export-garage";
 import { useFinishService } from "@/features/finish-service";
-import { usePrintWaybill } from "@/features/print-waybill";
+import { PrintWaybillDialog, usePrintWaybill } from "@/features/print-waybill";
 import { RoleSwitcher, useRole } from "@/features/switch-role";
 import { DISPATCHER_NAV, PAGE_COPY, type WorkspaceSection } from "@/shared/config";
 import { ui } from "@/shared/ui";
@@ -35,7 +35,7 @@ export function GaragePage() {
   const create = useCreateRequest();
   const finish = useFinishService();
   const drivers = useAssignDriver();
-  const { printWaybill } = usePrintWaybill();
+  const print = usePrintWaybill();
 
   const [section, setSection] = useState<WorkspaceSection>("dispatch");
   const [menuOpen, setMenuOpen] = useState(false);
@@ -169,18 +169,7 @@ export function GaragePage() {
             />
           )}
           {section === "waybills" && (
-            <WaybillsBoard
-              waybills={snapshot.waybills}
-              fleet={snapshot.fleet}
-              drivers={snapshot.drivers}
-              onPrint={(waybill, vehicle) =>
-                printWaybill({
-                  waybill,
-                  vehicle,
-                  branchName: snapshot.branch.name,
-                })
-              }
-            />
+            <WaybillsBoard waybills={snapshot.waybills} onPrint={print.printWaybill} />
           )}
           {section === "timesheet" && (
             <TimesheetBoard entries={snapshot.timesheet} drivers={snapshot.drivers} />
@@ -230,6 +219,7 @@ export function GaragePage() {
         onSubmit={create.submit}
       />
       <EventsSheet open={noticeOpen} events={snapshot.events} onClose={() => setNoticeOpen(false)} />
+      <PrintWaybillDialog waybill={print.waybill} onClose={print.close} />
     </div>
   );
 }

@@ -11,6 +11,11 @@ export type StaffRole =
 export type Branch = {
   id: string;
   name: string;
+  /** Полное наименование юрлица, оформившего путевой (приказ Минтранса № 390) */
+  legalName: string;
+  address: string;
+  phone: string;
+  ogrn: string;
 };
 
 export type StaffUser = {
@@ -26,6 +31,10 @@ export type Driver = {
   fullName: string;
   initials: string;
   licenseCategory: string;
+  licenseSeries: string;
+  licenseNumber: string;
+  licenseIssuedAt: string;
+  snils: string;
 };
 
 export type Vehicle = {
@@ -66,14 +75,47 @@ export type Request = {
   assigned?: string;
 };
 
+/** Путевой лист — состав сведений по приказу Минтранса № 390 */
 export type Waybill = {
   id: string;
   vehicleId: string;
   driverId: string;
-  driverName: string;
-  licenseCategory: string;
-  weekStart: string;
+  /** Срок действия: начало и конец периода */
+  validFrom: string;
+  validTo: string;
+  /** Снимок лица, оформившего лист */
+  issuerName: string;
+  issuerAddress: string;
+  issuerPhone: string;
+  issuerOgrn: string;
+  /** Снимок ТС */
+  vehicleType: string;
+  vehicleBrandModel: string;
+  vehiclePlate: string;
+  /** Предрейсовый / предсменный контроль ТС */
+  techControlAt: string;
+  techControlResult: string;
+  techControllerName: string;
+  /** Выпуск на линию / возврат */
+  departureAt: string;
+  returnAt?: string;
+  /** Одометр, полные км */
   odometerStart: number;
+  odometerEnd?: number;
+  /** Снимок водителя */
+  driverName: string;
+  licenseSeries: string;
+  licenseNumber: string;
+  licenseIssuedAt: string;
+  licenseCategory: string;
+  snils: string;
+  /** Медосмотр */
+  medicalExamAt: string;
+  medicalExamResult: string;
+  medicName: string;
+  /** Вид перевозки и вид сообщения */
+  carriageKind: string;
+  messageKind: 'городское' | 'пригородное' | 'междугородное';
 };
 
 export type TimesheetEntry = {

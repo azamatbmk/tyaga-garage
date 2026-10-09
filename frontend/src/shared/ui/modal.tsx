@@ -26,7 +26,7 @@ export function Modal({
   return (
     <div className={styles.dialogWrap}>
       <button className={styles.backdrop} aria-label="Закрыть" onClick={onClose} />
-      {children}
+      <div className={styles.dialogLayer}>{children}</div>
     </div>
   );
 }

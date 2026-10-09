@@ -99,3 +99,26 @@ select {
     scroll-behavior: auto !important;
   }
 }
+
+/* Печать путевого: только форма, без UI приложения и без popup */
+@media print {
+  body * {
+    visibility: hidden !important;
+  }
+
+  [data-print-root],
+  [data-print-root] * {
+    visibility: visible !important;
+  }
+
+  [data-print-root] {
+    position: absolute !important;
+    inset: 0 auto auto 0 !important;
+    width: 100% !important;
+    max-height: none !important;
+    overflow: visible !important;
+    box-shadow: none !important;
+    border: 0 !important;
+    background: #fff !important;
+  }
+}

@@ -30,6 +30,10 @@ export type Dispatcher = {
 export type Branch = {
   id: string;
   name: string;
+  legalName: string;
+  address: string;
+  phone: string;
+  ogrn: string;
 };
 
 export type StaffUser = {
@@ -45,16 +49,44 @@ export type Driver = {
   fullName: string;
   initials: string;
   licenseCategory: string;
+  licenseSeries: string;
+  licenseNumber: string;
+  licenseIssuedAt: string;
+  snils: string;
 };
 
+/** Путевой лист — состав сведений по приказу Минтранса № 390 */
 export type Waybill = {
   id: string;
   vehicleId: string;
   driverId: string;
-  driverName: string;
-  licenseCategory: string;
-  weekStart: string;
+  validFrom: string;
+  validTo: string;
+  issuerName: string;
+  issuerAddress: string;
+  issuerPhone: string;
+  issuerOgrn: string;
+  vehicleType: string;
+  vehicleBrandModel: string;
+  vehiclePlate: string;
+  techControlAt: string;
+  techControlResult: string;
+  techControllerName: string;
+  departureAt: string;
+  returnAt?: string;
   odometerStart: number;
+  odometerEnd?: number;
+  driverName: string;
+  licenseSeries: string;
+  licenseNumber: string;
+  licenseIssuedAt: string;
+  licenseCategory: string;
+  snils: string;
+  medicalExamAt: string;
+  medicalExamResult: string;
+  medicName: string;
+  carriageKind: string;
+  messageKind: "городское" | "пригородное" | "междугородное";
 };
 
 export type TimesheetEntry = {
