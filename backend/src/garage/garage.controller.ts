@@ -4,12 +4,16 @@ import {
   Get,
   Param,
   ParseIntPipe,
+  Patch,
   Post,
   StreamableFile,
 } from '@nestjs/common';
 import { AssignDriverDto } from './dto/assign-driver.dto.js';
 import { AssignRequestDto } from './dto/assign-request.dto.js';
 import { CreateRequestDto } from './dto/create-request.dto.js';
+import { CreateVehicleDto } from './dto/create-vehicle.dto.js';
+import { CreateWaybillDto } from './dto/create-waybill.dto.js';
+import { UpdateWaybillDto } from './dto/update-waybill.dto.js';
 import { GarageService } from './garage.service.js';
 
 @Controller()
@@ -44,6 +48,11 @@ export class GarageController {
     return this.garage.assignRequest(id, dto.vehicleId);
   }
 
+  @Post('fleet')
+  createVehicle(@Body() dto: CreateVehicleDto) {
+    return this.garage.createVehicle(dto);
+  }
+
   @Post('fleet/:id/assign-driver')
   assignDriver(@Param('id') id: string, @Body() dto: AssignDriverDto) {
     return this.garage.assignDriver(id, dto);
@@ -52,5 +61,15 @@ export class GarageController {
   @Post('fleet/:id/finish-service')
   finishService(@Param('id') id: string) {
     return this.garage.finishService(id);
+  }
+
+  @Post('waybills')
+  createWaybill(@Body() dto: CreateWaybillDto) {
+    return this.garage.createWaybill(dto);
+  }
+
+  @Patch('waybills/:id')
+  updateWaybill(@Param('id') id: string, @Body() dto: UpdateWaybillDto) {
+    return this.garage.updateWaybill(id, dto);
   }
 }

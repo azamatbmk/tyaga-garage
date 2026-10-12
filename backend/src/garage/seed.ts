@@ -11,555 +11,166 @@ import type {
   Vehicle,
   Waybill,
 } from './garage.types.js';
+import { GUP_SCOPE_ID } from './garage.types.js';
 
-export const DEMO_BRANCH: Branch = {
-  id: 'b1',
-  name: 'Основной филиал',
-  legalName: 'ГУП «ТЯГА»',
-  address: '693000, г. Южно-Сахалинск, ул. Гаражная, д. 1',
-  phone: '+7 (4242) 00-00-01',
-  ogrn: '1026500532109',
-};
+const GUP_LEGAL = 'ГУП «ТЯГА»';
+const GUP_OGRN = '1021500532109';
 
+function branch(
+  id: string,
+  name: string,
+  address: string,
+  phone: string,
+): Branch {
+  return {
+    id,
+    name,
+    legalName: GUP_LEGAL,
+    address,
+    phone,
+    ogrn: GUP_OGRN,
+  };
+}
+
+export const DEMO_BRANCHES: Branch[] = [
+  branch(
+    'b-vlad',
+    'Владикавказский',
+    '362040, г. Владикавказ, ул. Гаражная, д. 1',
+    '+7 (8672) 40-00-01',
+  ),
+  branch(
+    'b-prav',
+    'Правобережный',
+    '363029, г. Беслан, ул. Промышленная, д. 8',
+    '+7 (86737) 2-00-02',
+  ),
+  branch(
+    'b-kirov',
+    'Кировский',
+    '363600, с. Эльхотово, ул. Центральная, д. 12',
+    '+7 (86735) 2-00-03',
+  ),
+  branch(
+    'b-digor',
+    'Дигорский',
+    '363410, г. Дигора, ул. Ленина, д. 5',
+    '+7 (86733) 2-00-04',
+  ),
+  branch(
+    'b-ardon',
+    'Ардонский',
+    '363330, г. Ардон, ул. Транспортная, д. 3',
+    '+7 (86732) 2-00-05',
+  ),
+  branch(
+    'b-alag',
+    'Алагирский',
+    '363240, г. Алагир, ул. Мира, д. 17',
+    '+7 (86731) 2-00-06',
+  ),
+  branch(
+    'b-arkh',
+    'Архонский',
+    '363121, с. Архонская, ул. Советская, д. 9',
+    '+7 (8672) 40-00-07',
+  ),
+  branch(
+    'b-mozd',
+    'Моздокский',
+    '363750, г. Моздок, ул. Кирова, д. 22',
+    '+7 (86736) 2-00-08',
+  ),
+  branch(
+    'b-prig',
+    'Пригородный',
+    '363110, с. Октябрьское, ул. Гагарина, д. 4',
+    '+7 (8672) 40-00-09',
+  ),
+];
+
+/** @deprecated используйте DEMO_BRANCHES[0] */
+export const DEMO_BRANCH = DEMO_BRANCHES[0];
+
+/** Справочник типов техники для заявок (независимо от текущего парка) */
+export const REQUEST_CATEGORIES = [
+  'Экскаватор-погрузчик',
+  'Экскаватор',
+  'Самосвал',
+  'Автокран',
+  'Мини-погрузчик',
+  'Бульдозер',
+  'Погрузчик',
+  'Автогрейдер',
+  'Каток',
+] as const;
+
+/** Учётные записи для переключения ролей */
 export const DEMO_STAFF: StaffUser[] = [
+  {
+    id: 'u-gup-dispatcher',
+    name: 'Сергей Осетинский',
+    initials: 'СО',
+    role: 'gup_dispatcher',
+    branchId: GUP_SCOPE_ID,
+  },
   {
     id: 'u-dispatcher',
     name: 'Анна Миронова',
     initials: 'АМ',
     role: 'dispatcher',
-    branchId: 'b1',
+    branchId: 'b-vlad',
+  },
+  {
+    id: 'u-dispatcher-prav',
+    name: 'Марк Дроздов',
+    initials: 'МД',
+    role: 'dispatcher',
+    branchId: 'b-prav',
   },
   {
     id: 'u-chief',
     name: 'Ирина Савельева',
     initials: 'ИС',
     role: 'branch_chief',
-    branchId: 'b1',
+    branchId: 'b-vlad',
   },
   {
     id: 'u-dept',
     name: 'Пётр Кузнецов',
     initials: 'ПК',
     role: 'department_head',
-    branchId: 'b1',
+    branchId: 'b-vlad',
   },
   {
     id: 'u-deputy',
     name: 'Ольга Сидорова',
     initials: 'ОС',
     role: 'deputy',
-    branchId: 'b1',
+    branchId: 'b-vlad',
   },
   {
     id: 'u-mechanic',
     name: 'Валерий Громов',
     initials: 'ВГ',
     role: 'mechanic',
-    branchId: 'b1',
+    branchId: 'b-vlad',
   },
   {
     id: 'u-master',
     name: 'Денис Крылов',
     initials: 'ДК',
     role: 'master',
-    branchId: 'b1',
+    branchId: 'b-vlad',
   },
 ];
 
-function driver(
-  id: string,
-  fullName: string,
-  initials: string,
-  licenseCategory: string,
-  licenseSeries: string,
-  licenseNumber: string,
-  licenseIssuedAt: string,
-  snils: string,
-): Driver {
-  return {
-    id,
-    fullName,
-    initials,
-    licenseCategory,
-    licenseSeries,
-    licenseNumber,
-    licenseIssuedAt,
-    snils,
-  };
-}
-
-export const INITIAL_DRIVERS: Driver[] = [
-  driver('d01', 'Алексей Соколов', 'АС', 'C, E', '65 АА', '123456', '2018-04-12', '112-233-445 66'),
-  driver('d02', 'Дмитрий Козлов', 'ДК', 'C', '65 АВ', '234567', '2019-06-03', '223-344-556 77'),
-  driver('d03', 'Игорь Волков', 'ИВ', 'C, E', '65 АС', '345678', '2017-11-21', '334-455-667 88'),
-  driver('d04', 'Олег Морозов', 'ОМ', 'C', '65 АЕ', '456789', '2020-02-14', '445-566-778 99'),
-  driver('d05', 'Павел Орлов', 'ПО', 'B, C', '65 АК', '567890', '2021-08-09', '556-677-889 00'),
-  driver('d06', 'Виктор Белов', 'ВБ', 'C', '65 АМ', '678901', '2016-05-30', '667-788-990 11'),
-  driver('d07', 'Андрей Петров', 'АП', 'C, E', '65 АН', '789012', '2018-09-17', '778-899-001 22'),
-  driver('d08', 'Сергей Романов', 'СР', 'C', '65 АР', '890123', '2019-12-05', '889-900-112 33'),
-  driver('d09', 'Роман Лебедев', 'РЛ', 'C', '65 АТ', '901234', '2020-07-22', '990-011-223 44'),
-  driver('d10', 'Максим Егоров', 'МЕ', 'B, C', '65 АУ', '012345', '2022-01-18', '001-122-334 55'),
-  driver('d11', 'Антон Фролов', 'АФ', 'C', '65 АХ', '112233', '2017-03-11', '112-233-445 67'),
-  driver('d12', 'Николай Зайцев', 'НЗ', 'C', '65 АЧ', '223344', '2015-10-28', '223-344-556 78'),
-  driver('d13', 'Кирилл Малов', 'КМ', 'C, E', '65 АШ', '334455', '2021-04-07', '334-455-667 89'),
-];
-
-const WAYBILL_ISSUER = {
-  issuerName: DEMO_BRANCH.legalName,
-  issuerAddress: DEMO_BRANCH.address,
-  issuerPhone: DEMO_BRANCH.phone,
-  issuerOgrn: DEMO_BRANCH.ogrn,
-};
-
-const SPECIAL_CARRIAGE = 'передвижение и работа специальных транспортных средств' as const;
-
-export const INITIAL_FLEET: Vehicle[] = [
-  {
-    id: '01',
-    name: 'JCB 3CX',
-    category: 'Экскаватор-погрузчик',
-    plate: 'А 123 АА · 15',
-    driver: 'Алексей Соколов',
-    initials: 'АС',
-    driverId: 'd01',
-    branchId: 'b1',
-    status: 'working',
-    fuel: 76,
-    hours: 2840,
-    capacity: 'Ковш 1,0 м³',
-  },
-  {
-    id: '02',
-    name: 'SANY SY215C',
-    category: 'Экскаватор',
-    plate: 'В 456 ВВ · 15',
-    driver: 'Дмитрий Козлов',
-    initials: 'ДК',
-    driverId: 'd02',
-    branchId: 'b1',
-    status: 'working',
-    fuel: 62,
-    hours: 1630,
-    capacity: 'Ковш 1,1 м³',
-  },
-  {
-    id: '03',
-    name: 'КАМАЗ 65115',
-    category: 'Самосвал',
-    plate: 'М 789 ММ · 15',
-    driver: 'Игорь Волков',
-    initials: 'ИВ',
-    driverId: 'd03',
-    branchId: 'b1',
-    status: 'working',
-    fuel: 88,
-    hours: 4320,
-    capacity: 'Грузоподъёмность 15 т',
-  },
-  {
-    id: '04',
-    name: 'Галичанин КС-55713',
-    category: 'Автокран',
-    plate: 'К 215 КК · 15',
-    driver: 'Олег Морозов',
-    initials: 'ОМ',
-    driverId: 'd04',
-    branchId: 'b1',
-    status: 'reserved',
-    fuel: 92,
-    hours: 2180,
-    capacity: 'Грузоподъёмность 25 т',
-  },
-  {
-    id: '05',
-    name: 'Bobcat S530',
-    category: 'Мини-погрузчик',
-    plate: 'Е 032 ЕЕ · 15',
-    driver: 'Павел Орлов',
-    initials: 'ПО',
-    driverId: 'd05',
-    branchId: 'b1',
-    status: 'ready',
-    fuel: 95,
-    hours: 970,
-    capacity: 'Грузоподъёмность 869 кг',
-  },
-  {
-    id: '06',
-    name: 'Shantui SD16',
-    category: 'Бульдозер',
-    plate: 'Т 416 ТТ · 15',
-    driver: 'Виктор Белов',
-    initials: 'ВБ',
-    driverId: 'd06',
-    branchId: 'b1',
-    status: 'service',
-    fuel: 44,
-    hours: 3500,
-    capacity: 'Отвал 3,4 м³',
-  },
-  {
-    id: '07',
-    name: 'MAN TGS',
-    category: 'Самосвал',
-    plate: 'Н 518 НН · 15',
-    driver: 'Андрей Петров',
-    initials: 'АП',
-    driverId: 'd07',
-    branchId: 'b1',
-    status: 'working',
-    fuel: 68,
-    hours: 3160,
-    capacity: 'Грузоподъёмность 20 т',
-  },
-  {
-    id: '08',
-    name: 'Volvo EC220',
-    category: 'Экскаватор',
-    plate: 'С 728 СС · 15',
-    driver: 'Сергей Романов',
-    initials: 'СР',
-    driverId: 'd08',
-    branchId: 'b1',
-    status: 'working',
-    fuel: 71,
-    hours: 2410,
-    capacity: 'Ковш 1,2 м³',
-  },
-  {
-    id: '09',
-    name: 'XCMG GR180',
-    category: 'Автогрейдер',
-    plate: 'Р 604 РР · 15',
-    driver: 'Роман Лебедев',
-    initials: 'РЛ',
-    driverId: 'd09',
-    branchId: 'b1',
-    status: 'working',
-    fuel: 56,
-    hours: 1950,
-    capacity: 'Отвал 3,7 м',
-  },
-  {
-    id: '10',
-    name: 'JCB 4CX',
-    category: 'Экскаватор-погрузчик',
-    plate: 'Х 102 ХХ · 15',
-    driver: 'Максим Егоров',
-    initials: 'МЕ',
-    driverId: 'd10',
-    branchId: 'b1',
-    status: 'ready',
-    fuel: 100,
-    hours: 840,
-    capacity: 'Ковш 1,3 м³',
-  },
-  {
-    id: '11',
-    name: 'Амкодор 342В',
-    category: 'Погрузчик',
-    plate: 'О 311 ОО · 15',
-    driver: 'Антон Фролов',
-    initials: 'АФ',
-    driverId: 'd11',
-    branchId: 'b1',
-    status: 'ready',
-    fuel: 90,
-    hours: 1720,
-    capacity: 'Ковш 2,3 м³',
-  },
-  {
-    id: '12',
-    name: 'HAMM 3412',
-    category: 'Каток',
-    plate: 'У 912 УУ · 15',
-    driver: 'Николай Зайцев',
-    initials: 'НЗ',
-    driverId: 'd12',
-    branchId: 'b1',
-    status: 'service',
-    fuel: 57,
-    hours: 2000,
-    capacity: 'Рабочая масса 12 т',
-  },
-];
-
-export const INITIAL_JOBS: Job[] = [
-  {
-    id: 1041,
-    vehicle: '01',
-    title: 'ЖК «Горизонт»',
-    location: 'Разработка грунта',
-    start: 8,
-    end: 13,
-    tone: 'lime',
-  },
-  {
-    id: 1042,
-    vehicle: '02',
-    title: 'Промышленный парк',
-    location: 'Рытьё котлована',
-    start: 9,
-    end: 17,
-    tone: 'blue',
-  },
-  {
-    id: 1043,
-    vehicle: '03',
-    title: 'Доставка щебня',
-    location: 'Объездная дорога, участок 4',
-    start: 8.5,
-    end: 12,
-    tone: 'lime',
-  },
-  {
-    id: 1044,
-    vehicle: '04',
-    title: 'Монтаж перекрытий',
-    location: 'ЖК «Южный»',
-    start: 13,
-    end: 18,
-    tone: 'reserved',
-  },
-  {
-    id: 1045,
-    vehicle: '07',
-    title: 'Вывоз грунта',
-    location: 'ЖК «Горизонт»',
-    start: 8,
-    end: 16,
-    tone: 'lime',
-  },
-  {
-    id: 1046,
-    vehicle: '08',
-    title: 'Траншея водопровода',
-    location: 'Промышленный парк',
-    start: 9,
-    end: 17,
-    tone: 'blue',
-  },
-  {
-    id: 1047,
-    vehicle: '09',
-    title: 'Профилирование дороги',
-    location: 'Объездная дорога, участок 4',
-    start: 8,
-    end: 18,
-    tone: 'lime',
-  },
-];
-
-export const INITIAL_REQUESTS: Request[] = [
-  {
-    id: 1048,
-    title: 'Планировка участка',
-    location: 'ЖК «Северный», корпус 2',
-    category: 'Экскаватор-погрузчик',
-    start: 13,
-    end: 17,
-    urgent: true,
-    branchId: 'b1',
-    creatorId: 'u-dept',
-  },
-  {
-    id: 1049,
-    title: 'Погрузка щебня',
-    location: 'База «Стройресурс»',
-    category: 'Погрузчик',
-    start: 12,
-    end: 15,
-    urgent: false,
-    branchId: 'b1',
-    creatorId: 'u-mechanic',
-  },
-  {
-    id: 1050,
-    title: 'Благоустройство',
-    location: 'Сквер на Молодёжной',
-    category: 'Мини-погрузчик',
-    start: 14,
-    end: 18,
-    urgent: false,
-    branchId: 'b1',
-    creatorId: 'u-master',
-  },
-];
-
-function waybillFrom(
-  id: string,
-  vehicleId: string,
-  driverId: string,
-  vehicleType: string,
-  vehicleBrandModel: string,
-  vehiclePlate: string,
-  odometerStart: number,
-  odometerEnd: number | undefined,
-  departureAt: string,
-  returnAt: string | undefined,
-): Waybill {
-  const driverRow = INITIAL_DRIVERS.find((item) => item.id === driverId);
-  if (!driverRow) {
-    throw new Error(`Driver ${driverId} missing in seed`);
-  }
-  return {
-    id,
-    vehicleId,
-    driverId,
-    validFrom: '2026-09-08',
-    validTo: '2026-09-14',
-    ...WAYBILL_ISSUER,
-    vehicleType,
-    vehicleBrandModel,
-    vehiclePlate,
-    techControlAt: '2026-09-08T07:40:00',
-    techControlResult: 'Исправен, выпуск разрешён',
-    techControllerName: 'В. Громов',
-    departureAt,
-    returnAt,
-    odometerStart,
-    odometerEnd,
-    driverName: driverRow.fullName,
-    licenseSeries: driverRow.licenseSeries,
-    licenseNumber: driverRow.licenseNumber,
-    licenseIssuedAt: driverRow.licenseIssuedAt,
-    licenseCategory: driverRow.licenseCategory,
-    snils: driverRow.snils,
-    medicalExamAt: '2026-09-08T07:25:00',
-    medicalExamResult: 'Допущен к управлению ТС',
-    medicName: 'С. Иванова',
-    carriageKind: SPECIAL_CARRIAGE,
-    messageKind: 'городское',
-  };
-}
-
-export const INITIAL_WAYBILLS: Waybill[] = [
-  waybillFrom(
-    'w-01',
-    '01',
-    'd01',
-    'Экскаватор-погрузчик',
-    'JCB 3CX',
-    'А 123 АА · 15',
-    124580,
-    undefined,
-    '2026-09-08T08:00:00',
-    undefined,
-  ),
-  waybillFrom(
-    'w-03',
-    '03',
-    'd03',
-    'Самосвал',
-    'КАМАЗ 65115',
-    'М 789 ММ · 15',
-    98240,
-    98410,
-    '2026-09-08T08:05:00',
-    '2026-09-12T18:40:00',
-  ),
-  waybillFrom(
-    'w-07',
-    '07',
-    'd07',
-    'Самосвал',
-    'MAN TGS',
-    'Н 518 НН · 15',
-    156110,
-    undefined,
-    '2026-09-08T07:55:00',
-    undefined,
-  ),
-];
-
-export const INITIAL_TIMESHEET: TimesheetEntry[] = [
-  {
-    id: 't-1',
-    driverId: 'd01',
-    month: '2026-09',
-    requestId: 1041,
-    hours: 2,
-    type: 'overtime',
-    note: 'ЖК «Горизонт» · сверх смены',
-  },
-  {
-    id: 't-2',
-    driverId: 'd03',
-    month: '2026-09',
-    hours: 8,
-    type: 'weekend',
-    note: 'Суббота · доставка щебня',
-  },
-];
-
-export const INITIAL_FUELINGS: Fueling[] = [
-  {
-    id: 'f-1',
-    vehicleId: '01',
-    fueledAt: '2026-09-10',
-    liters: 80,
-    source: 'cheque',
-    amount: 4800,
-  },
-  {
-    id: 'f-2',
-    vehicleId: '03',
-    fueledAt: '2026-09-11',
-    liters: 120,
-    source: 'program',
-    amount: 7200,
-  },
-  {
-    id: 'f-3',
-    vehicleId: '07',
-    fueledAt: '2026-09-11',
-    liters: 95,
-    source: 'program',
-    amount: 5700,
-  },
-];
-
-export const INITIAL_EVENTS: GarageEvent[] = [
-  {
-    time: '10:42',
-    title: 'КАМАЗ 65115 прибыл на объект',
-    detail: 'Игорь Волков · доставка щебня',
-    type: 'arrival',
-  },
-  {
-    time: '10:30',
-    title: 'Новая срочная заявка № 1048',
-    detail: 'ЖК «Северный» · требуется назначение',
-    type: 'request',
-  },
-  {
-    time: '10:15',
-    title: 'Bobcat S530 готов к выезду',
-    detail: 'Предсменный осмотр завершён',
-    type: 'ready',
-  },
-];
-
-export const DISPATCHERS: Dispatcher[] = [
-  {
-    name: 'Анна Миронова',
-    initials: 'АМ',
-    role: 'Старший диспетчер',
-    time: '08:00–20:00',
-    color: 'violet',
-  },
-  {
-    name: 'Марк Дроздов',
-    initials: 'МД',
-    role: 'Диспетчер',
-    time: '08:00–20:00',
-    color: 'peach',
-  },
-  {
-    name: 'Елена Новикова',
-    initials: 'ЕН',
-    role: 'Диспетчер',
-    time: '10:00–22:00',
-    color: 'mint',
-  },
-];
+export const INITIAL_DRIVERS: Driver[] = [];
+export const INITIAL_FLEET: Vehicle[] = [];
+export const INITIAL_JOBS: Job[] = [];
+export const INITIAL_REQUESTS: Request[] = [];
+export const INITIAL_WAYBILLS: Waybill[] = [];
+export const INITIAL_TIMESHEET: TimesheetEntry[] = [];
+export const INITIAL_FUELINGS: Fueling[] = [];
+export const INITIAL_EVENTS: GarageEvent[] = [];
+export const DISPATCHERS: Dispatcher[] = [];

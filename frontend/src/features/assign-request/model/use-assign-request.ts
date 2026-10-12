@@ -15,11 +15,25 @@ export function useAssignRequest() {
 
   function start(next: RequestItem, preferred?: string) {
     if (!snapshot) return;
+    const preferredOk =
+      preferred &&
+      snapshot.fleet.some(
+        (vehicle) =>
+          vehicle.id === preferred &&
+          vehicle.branchId === next.branchId &&
+          vehicle.status === "ready" &&
+          vehicle.category === next.category,
+      );
     setRequest(next);
     setVehicleId(
-      preferred ||
-        snapshot.fleet.find((vehicle) => vehicle.status === "ready" && vehicle.category === next.category)?.id ||
-        "",
+      preferredOk
+        ? preferred
+        : snapshot.fleet.find(
+            (vehicle) =>
+              vehicle.branchId === next.branchId &&
+              vehicle.status === "ready" &&
+              vehicle.category === next.category,
+          )?.id || "",
     );
   }
 

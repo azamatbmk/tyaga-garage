@@ -12,6 +12,7 @@ export function ServiceBoard({
 }) {
   const service = fleet.filter((item) => item.status === "service");
   const healthy = fleet.length - service.length;
+  const healthyPct = fleet.length === 0 ? 0 : Math.round((healthy / fleet.length) * 100);
 
   return (
     <>
@@ -21,17 +22,23 @@ export function ServiceBoard({
         </span>
         <div>
           <h2>
-            {healthy} из {fleet.length} единиц исправны
+            {fleet.length === 0
+              ? "В парке пока нет техники"
+              : `${healthy} из ${fleet.length} единиц исправны`}
           </h2>
-          <p>Техника на обслуживании недоступна для назначения на заявки.</p>
+          <p>
+            {fleet.length === 0
+              ? "Добавьте машины в разделе «Парк техники»."
+              : "Техника на обслуживании недоступна для назначения на заявки."}
+          </p>
         </div>
         <span className={styles.serviceNumber}>
-          {Math.round((healthy / fleet.length) * 100)}
+          {healthyPct}
           <small>%</small>
         </span>
       </div>
       <div className={styles.serviceGrid}>
-        {service.map((vehicle, index) => (
+        {service.map((vehicle) => (
           <article className={`${styles.panel} ${styles.serviceCard}`} key={vehicle.id}>
             <div className={styles.serviceCardHeading}>
               <VehicleIcon category={vehicle.category} status="service" size={32} />
@@ -42,12 +49,12 @@ export function ServiceBoard({
               {vehicle.plate} · {vehicle.hours.toLocaleString("ru-RU")} м/ч
             </p>
             <div className={styles.serviceWork}>
-              <div className={ui.muted}>ПЛАНОВЫЕ РАБОТЫ</div>
-              <h3>{vehicle.id === "06" ? "Замена масла и фильтров" : "Обслуживание гидросистемы"}</h3>
-              <p>Механик: {index === 0 ? "Владимир Смирнов" : "Александр Иванов"}</p>
+              <div className={ui.muted}>ОБСЛУЖИВАНИЕ</div>
+              <h3>Плановые работы</h3>
+              <p>Водитель: {vehicle.driver}</p>
               <div className={styles.serviceDue}>
                 <Clock3 size={15} />
-                Ожидаемая готовность: {vehicle.id === "06" ? "сегодня, 16:00" : "13 сентября, 10:00"}
+                Статус: на обслуживании
               </div>
             </div>
             <button className={`${ui.secondaryButton} ${ui.wide}`} onClick={() => onSelect(vehicle.id)}>
@@ -56,7 +63,7 @@ export function ServiceBoard({
           </article>
         ))}
       </div>
-      {service.length === 0 && (
+      {service.length === 0 && fleet.length > 0 && (
         <div className={`${styles.panel} ${ui.empty}`}>
           <ShieldCheck size={38} />
           <h3>Вся техника в строю</h3>

@@ -62,21 +62,27 @@ export function FleetPanel({
       ) : (
         <div className={ui.empty}>
           <Search size={32} />
-          <h3>Техника не найдена</h3>
-          <p>Попробуйте другое название или измените фильтр.</p>
-          <button
-            className={ui.secondaryButton}
-            onClick={() => {
-              onQuery("");
-              onFilter("all");
-            }}
-          >
-            Показать весь парк
-          </button>
+          <h3>{fleet.length === 0 ? "Парк пока пуст" : "Техника не найдена"}</h3>
+          <p>
+            {fleet.length === 0
+              ? "Добавьте первую машину кнопкой выше — вручную или со скана ПТС/СТС."
+              : "Попробуйте другое название или измените фильтр."}
+          </p>
+          {fleet.length > 0 && (
+            <button
+              className={ui.secondaryButton}
+              onClick={() => {
+                onQuery("");
+                onFilter("all");
+              }}
+            >
+              Показать весь парк
+            </button>
+          )}
         </div>
       )}
       <div className={styles.summary}>
-        {filtered.length} из {fleet.length} единиц · состояние на 12 сентября, 10:45
+        {filtered.length} из {fleet.length} единиц
       </div>
     </section>
   );

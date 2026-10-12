@@ -50,4 +50,5 @@ npm run dev:web
 | `GET` | `/api/garage` | Снимок парка, заявок, смены |
 | `POST` | `/api/requests` | Новая заявка |
 | `POST` | `/api/requests/:id/assign` | Назначение свободной техники |
+| `POST` | `/api/fleet` | Добавить технику в парк |
 | `POST` | `/api/fleet/:id/finish-service` | Возврат с ТО в парк |

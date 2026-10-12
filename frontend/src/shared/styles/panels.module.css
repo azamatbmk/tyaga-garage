@@ -411,3 +411,77 @@
   flex-direction: column;
   gap: 8px;
 }
+
+.inlineActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.gupGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 14px;
+  margin-bottom: 28px;
+}
+
+.gupCard {
+  text-align: left;
+  background: #fff;
+  border: 1px solid #e0e6d8;
+  border-radius: 12px;
+  padding: 16px 18px;
+  color: inherit;
+}
+
+.gupCard:hover {
+  border-color: #c7d6b2;
+  background: #f9fcf3;
+}
+
+.gupCardActive {
+  border-color: #a7c564;
+  box-shadow: 0 0 0 2px #cfee7a66;
+}
+
+.gupCard header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  color: #3a5622;
+}
+
+.gupCard dl {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px 12px;
+  margin: 0;
+}
+
+.gupCard dt {
+  font-size: 0.6875rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #89947e;
+}
+
+.gupCard dd {
+  margin: 2px 0 0;
+  font-size: 1.125rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.gupDetail {
+  margin-top: 8px;
+}
+
+.gupSectionTitle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 22px 0 12px;
+  font-size: 1rem;
+  color: #3a5622;
+}

@@ -32,7 +32,7 @@ export function RequestsBoard({
             { value: "all", label: "Все заявки", count: requests.length },
           ]}
         />
-        <span className={ui.muted}>12 сентября · дневная смена</span>
+        <span className={ui.muted}>Дневная смена 08:00–20:00</span>
       </div>
       {visible.length ? (
         <div className={styles.requestsGrid}>

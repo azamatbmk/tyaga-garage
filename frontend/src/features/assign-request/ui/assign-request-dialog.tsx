@@ -21,7 +21,12 @@ export function AssignRequestDialog({
   onConfirm: () => void;
 }) {
   const eligible = request
-    ? fleet.filter((vehicle) => vehicle.status === "ready" && vehicle.category === request.category)
+    ? fleet.filter(
+        (vehicle) =>
+          vehicle.branchId === request.branchId &&
+          vehicle.status === "ready" &&
+          vehicle.category === request.category,
+      )
     : [];
   const selected = fleet.find((vehicle) => vehicle.id === vehicleId);
 
@@ -38,7 +43,7 @@ export function AssignRequestDialog({
             </button>
           </div>
           <h2 id="assign-title">Назначить технику</h2>
-          <p className={styles.description}>Заявка № {request.id} · 12 сентября</p>
+          <p className={styles.description}>Заявка № {request.id}</p>
           <div className={styles.brief}>
             <h3>{request.title}</h3>
             <p>
@@ -80,7 +85,11 @@ export function AssignRequestDialog({
             <button className={ui.secondaryButton} onClick={onClose}>
               Отмена
             </button>
-            <button className={ui.primaryButton} disabled={!eligible.length || !vehicleId} onClick={onConfirm}>
+            <button
+              className={ui.primaryButton}
+              disabled={!eligible.some((vehicle) => vehicle.id === vehicleId)}
+              onClick={onConfirm}
+            >
               Подтвердить назначение
               <ArrowRight size={17} />
             </button>

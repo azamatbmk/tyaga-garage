@@ -63,7 +63,14 @@ export function DispatchBoard({
   const pending = requests.filter((item) => !item.assigned);
   const operable = fleet.length - counts.service;
   const load = operable === 0 ? 0 : Math.round((counts.working / operable) * 100);
-  const visibleFleet = allSchedule ? fleet : fleet.slice(0, 6);
+  const focusLimit = 6;
+  const visibleFleet = allSchedule ? fleet : fleet.slice(0, focusLimit);
+  const focusLabel =
+    fleet.length === 0
+      ? "Парк пуст"
+      : allSchedule
+        ? `Весь парк · ${fleet.length}`
+        : `В фокусе · ${Math.min(focusLimit, fleet.length)} из ${fleet.length}`;
 
   return (
     <>
@@ -164,15 +171,15 @@ export function DispatchBoard({
             <div className={styles.toolbar}>
               <span className={styles.date}>
                 <CalendarDays size={15} />
-                <b>12 сентября</b>
-                <span>Суббота</span>
+                <b>Сегодня</b>
+                <span>Смена</span>
               </span>
               <button
                 className={cx(styles.filter, allSchedule && styles.filterOn)}
                 onClick={() => onAllSchedule(!allSchedule)}
               >
                 <SlidersHorizontal size={14} />
-                {allSchedule ? "Весь парк" : "В фокусе · 6 из 12"}
+                {focusLabel}
                 <ChevronRight size={14} />
               </button>
             </div>
@@ -372,7 +379,13 @@ export function DispatchBoard({
                 <ArrowUpRight size={20} />
               </span>
               <p>
-                {counts.ready ? (
+                {fleet.length === 0 ? (
+                  <>
+                    <b>Парк пуст</b>
+                    <br />
+                    Добавьте технику в разделе «Парк»
+                  </>
+                ) : counts.ready ? (
                   <>
                     <b>
                       {counts.ready} {counts.ready === 1 ? "единица готова" : "единицы готовы"} к выезду
@@ -382,7 +395,7 @@ export function DispatchBoard({
                   </>
                 ) : (
                   <>
-                    <b>Свободная техника распределена</b>
+                    <b>Свободной техники нет</b>
                     <br />
                     Следите за возвращением в гараж
                   </>

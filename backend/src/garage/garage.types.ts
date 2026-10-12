@@ -1,6 +1,7 @@
 export type Status = 'working' | 'ready' | 'reserved' | 'service';
 
 export type StaffRole =
+  | 'gup_dispatcher'
   | 'dispatcher'
   | 'branch_chief'
   | 'department_head'
@@ -8,10 +9,13 @@ export type StaffRole =
   | 'mechanic'
   | 'master';
 
+/** Специальный branchId для сотрудников аппарата ГУП */
+export const GUP_SCOPE_ID = 'gup';
+
 export type Branch = {
   id: string;
   name: string;
-  /** Полное наименование юрлица, оформившего путевой (приказ Минтранса № 390) */
+  /** Полное наименование юрлица (ГУП) */
   legalName: string;
   address: string;
   phone: string;
@@ -23,6 +27,7 @@ export type StaffUser = {
   name: string;
   initials: string;
   role: StaffRole;
+  /** Филиал или GUP_SCOPE_ID для диспетчера ГУП */
   branchId: string;
 };
 
@@ -80,6 +85,7 @@ export type Waybill = {
   id: string;
   vehicleId: string;
   driverId: string;
+  branchId: string;
   /** Срок действия: начало и конец периода */
   validFrom: string;
   validTo: string;
@@ -99,7 +105,7 @@ export type Waybill = {
   /** Выпуск на линию / возврат */
   departureAt: string;
   returnAt?: string;
-  /** Одометр, полные км */
+  /** Километраж, полные км */
   odometerStart: number;
   odometerEnd?: number;
   /** Снимок водителя */
@@ -153,9 +159,12 @@ export type Dispatcher = {
 };
 
 export type GarageSnapshot = {
-  demo: true;
+  demo: boolean;
   date: string;
   snapshotTime: string;
+  /** Все филиалы ГУП */
+  branches: Branch[];
+  /** @deprecated используйте branches; оставлен для совместимости = первый филиал */
   branch: Branch;
   staff: StaffUser[];
   drivers: Driver[];

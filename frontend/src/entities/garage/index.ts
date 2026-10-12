@@ -1,4 +1,5 @@
 export { getGarage } from "./api/get-garage";
+export { filterSnapshotByBranch } from "./model/filter-by-branch";
 export { GarageProvider, useGarage } from "./model/garage-store";
 export type {
   Branch,

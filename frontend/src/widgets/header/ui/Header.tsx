@@ -38,12 +38,9 @@ export function Header({
       </div>
       <div className={styles.topbarRight}>
         {roleSwitcher}
-        <span className={styles.demoBadge} title="Демонстрационные данные. Изменения живут на сервере до его перезапуска.">
-          ДЕМО
-        </span>
         <span className={styles.topbarDate}>
           <CalendarDays size={15} />
-          12 сентября 2026
+          Смена 08:00–20:00
         </span>
         {showEvents && (
           <button className={styles.notification} aria-label="Открыть события смены" onClick={onOpenEvents}>
@@ -53,7 +50,7 @@ export function Header({
         )}
         {onOpenTeam && (
           <button onClick={onOpenTeam} aria-label="Команда диспетчеров">
-            <Avatar initials="АМ" color="violet" />
+            <Avatar initials="ГУ" color="violet" />
           </button>
         )}
       </div>

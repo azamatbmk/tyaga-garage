@@ -5,8 +5,12 @@ import {
 } from '@nestjs/common';
 import { AssignDriverDto } from './dto/assign-driver.dto.js';
 import { CreateRequestDto } from './dto/create-request.dto.js';
+import { CreateVehicleDto } from './dto/create-vehicle.dto.js';
+import { CreateWaybillDto } from './dto/create-waybill.dto.js';
+import { UpdateWaybillDto } from './dto/update-waybill.dto.js';
 import {
   DEMO_BRANCH,
+  DEMO_BRANCHES,
   DEMO_STAFF,
   DISPATCHERS,
   INITIAL_DRIVERS,
@@ -17,22 +21,54 @@ import {
   INITIAL_REQUESTS,
   INITIAL_TIMESHEET,
   INITIAL_WAYBILLS,
+  REQUEST_CATEGORIES,
 } from './seed.js';
 import { buildGarageExcel, garageExcelFilename } from './garage-excel.js';
-import type {
-  Fueling,
-  GarageEvent,
-  GarageSnapshot,
-  Job,
-  Request,
-  TimesheetEntry,
-  Vehicle,
-  Waybill,
+import {
+  GUP_SCOPE_ID,
+  type Driver,
+  type Fueling,
+  type GarageEvent,
+  type GarageSnapshot,
+  type Job,
+  type Request,
+  type TimesheetEntry,
+  type Vehicle,
+  type Waybill,
 } from './garage.types.js';
+
+export type GarageSeedState = {
+  fleet?: Vehicle[];
+  jobs?: Job[];
+  requests?: Request[];
+  events?: GarageEvent[];
+  drivers?: Driver[];
+  waybills?: Waybill[];
+  timesheet?: TimesheetEntry[];
+  fuelings?: Fueling[];
+};
 
 const DEMO_DATE = '2026-09-12';
 const DEMO_TIME = '10:45';
 const DEFAULT_CREATOR_ID = 'u-dept';
+const SPECIAL_CARRIAGE =
+  'передвижение и работа специальных транспортных средств';
+
+function assertPeriod(validFrom: string, validTo: string) {
+  if (validTo < validFrom) {
+    throw new BadRequestException(
+      'Дата окончания срока не может быть раньше даты начала',
+    );
+  }
+}
+
+function assertOdometer(start: number, end?: number | null) {
+  if (end != null && end < start) {
+    throw new BadRequestException(
+      'Километраж при возврате не может быть меньше показания при выпуске',
+    );
+  }
+}
 
 function clone<T>(value: T): T {
   return structuredClone(value);
@@ -53,22 +89,51 @@ function toHours(value: string): number {
   return hours + minutes / 60;
 }
 
+function initialsFromName(fullName: string): string {
+  const parts = fullName.trim().split(/\s+/).filter(Boolean);
+  if (parts.length >= 2) {
+    return `${parts[0]![0] ?? ''}${parts[1]![0] ?? ''}`.toUpperCase();
+  }
+  return fullName.trim().slice(0, 2).toUpperCase() || 'НА';
+}
+
+function nextVehicleId(fleet: Vehicle[]): string {
+  const nums = fleet
+    .map((item) => Number.parseInt(item.id, 10))
+    .filter((value) => Number.isFinite(value));
+  const next = (nums.length ? Math.max(...nums) : 0) + 1;
+  return String(next).padStart(2, '0');
+}
+
 @Injectable()
 export class GarageService {
   private fleet: Vehicle[] = clone(INITIAL_FLEET);
   private jobs: Job[] = clone(INITIAL_JOBS);
   private requests: Request[] = clone(INITIAL_REQUESTS);
   private events: GarageEvent[] = clone(INITIAL_EVENTS);
-  private drivers = clone(INITIAL_DRIVERS);
+  private drivers: Driver[] = clone(INITIAL_DRIVERS);
   private waybills: Waybill[] = clone(INITIAL_WAYBILLS);
   private timesheet: TimesheetEntry[] = clone(INITIAL_TIMESHEET);
   private fuelings: Fueling[] = clone(INITIAL_FUELINGS);
 
+  /** Подмена состояния — только для unit-тестов */
+  loadSeed(seed: GarageSeedState) {
+    if (seed.fleet) this.fleet = clone(seed.fleet);
+    if (seed.jobs) this.jobs = clone(seed.jobs);
+    if (seed.requests) this.requests = clone(seed.requests);
+    if (seed.events) this.events = clone(seed.events);
+    if (seed.drivers) this.drivers = clone(seed.drivers);
+    if (seed.waybills) this.waybills = clone(seed.waybills);
+    if (seed.timesheet) this.timesheet = clone(seed.timesheet);
+    if (seed.fuelings) this.fuelings = clone(seed.fuelings);
+  }
+
   getSnapshot(): GarageSnapshot {
     return {
-      demo: true,
+      demo: false,
       date: DEMO_DATE,
       snapshotTime: DEMO_TIME,
+      branches: clone(DEMO_BRANCHES),
       branch: clone(DEMO_BRANCH),
       staff: clone(DEMO_STAFF),
       drivers: clone(this.drivers),
@@ -90,15 +155,25 @@ export class GarageService {
       throw new BadRequestException('Укажите работы и адрес объекта');
     }
 
-    const categories = [...new Set(this.fleet.map((vehicle) => vehicle.category))];
-    if (!categories.includes(dto.category)) {
-      throw new BadRequestException('Неизвестный тип техники');
-    }
-
     const creatorId = dto.creatorId ?? DEFAULT_CREATOR_ID;
     const creator = DEMO_STAFF.find((user) => user.id === creatorId);
     if (!creator) {
       throw new BadRequestException('Неизвестный заявитель');
+    }
+
+    const isGupCreator = creator.branchId === GUP_SCOPE_ID;
+    let branchId = creator.branchId;
+    if (isGupCreator) {
+      if (!dto.branchId || !DEMO_BRANCHES.some((item) => item.id === dto.branchId)) {
+        throw new BadRequestException('Укажите филиал для заявки');
+      }
+      branchId = dto.branchId;
+    } else if (!DEMO_BRANCHES.some((item) => item.id === creator.branchId)) {
+      throw new BadRequestException('Заявку может создать только сотрудник филиала');
+    }
+
+    if (!(REQUEST_CATEGORIES as readonly string[]).includes(dto.category)) {
+      throw new BadRequestException('Неизвестный тип техники');
     }
 
     const start = toHours(dto.start);
@@ -119,7 +194,7 @@ export class GarageService {
         start,
         end,
         urgent: dto.urgent,
-        branchId: creator.branchId,
+        branchId,
         creatorId: creator.id,
       },
       ...this.requests,
@@ -141,10 +216,11 @@ export class GarageService {
     if (
       !vehicle ||
       vehicle.status !== 'ready' ||
-      vehicle.category !== request.category
+      vehicle.category !== request.category ||
+      vehicle.branchId !== request.branchId
     ) {
       throw new BadRequestException(
-        'Выберите свободную технику подходящего типа',
+        'Выберите свободную технику подходящего типа в том же филиале',
       );
     }
 
@@ -220,12 +296,189 @@ export class GarageService {
     return this.getSnapshot();
   }
 
+  createVehicle(dto: CreateVehicleDto): GarageSnapshot {
+    const name = dto.name.trim();
+    const plate = dto.plate.trim().replace(/\s+/g, ' ').toUpperCase();
+    const capacity = dto.capacity?.trim() || '—';
+
+    if (!DEMO_BRANCHES.some((item) => item.id === dto.branchId)) {
+      throw new BadRequestException('Неизвестный филиал');
+    }
+    if (this.fleet.some((item) => item.plate.toUpperCase() === plate)) {
+      throw new BadRequestException('Техника с таким госномером уже есть в парке');
+    }
+
+    const driver = this.resolveDriverForNewVehicle(dto.driverId, dto.driverName);
+    const vehicle: Vehicle = {
+      id: nextVehicleId(this.fleet),
+      name,
+      category: dto.category,
+      plate,
+      driver: driver.fullName,
+      initials: driver.initials,
+      driverId: driver.id,
+      branchId: dto.branchId,
+      status: 'ready',
+      fuel: dto.fuel ?? 100,
+      hours: dto.hours ?? 0,
+      capacity,
+    };
+
+    this.fleet = [vehicle, ...this.fleet];
+    this.addEvent(
+      `В парк добавлена ${vehicle.name}`,
+      `${vehicle.plate} · ${vehicle.category} · ${vehicle.driver}`,
+      'ready',
+    );
+    return this.getSnapshot();
+  }
+
+  createWaybill(dto: CreateWaybillDto): GarageSnapshot {
+    assertPeriod(dto.validFrom, dto.validTo);
+    assertOdometer(dto.odometerStart, dto.odometerEnd);
+
+    const vehicle = this.fleet.find((item) => item.id === dto.vehicleId);
+    if (!vehicle) {
+      throw new NotFoundException('Техника не найдена');
+    }
+
+    const driver = this.drivers.find((item) => item.id === vehicle.driverId);
+    if (!driver) {
+      throw new BadRequestException('У машины не закреплён водитель');
+    }
+
+    const branch =
+      DEMO_BRANCHES.find((item) => item.id === vehicle.branchId) ?? DEMO_BRANCH;
+    const id = `w-${Date.now().toString(36)}`;
+    const departureAt = `${dto.validFrom}T08:00:00`;
+    const waybill: Waybill = {
+      id,
+      vehicleId: vehicle.id,
+      driverId: driver.id,
+      branchId: vehicle.branchId,
+      validFrom: dto.validFrom,
+      validTo: dto.validTo,
+      issuerName: branch.legalName,
+      issuerAddress: branch.address,
+      issuerPhone: branch.phone,
+      issuerOgrn: branch.ogrn,
+      vehicleType: vehicle.category,
+      vehicleBrandModel: vehicle.name,
+      vehiclePlate: vehicle.plate,
+      techControlAt: `${dto.validFrom}T07:40:00`,
+      techControlResult: 'Исправен, выпуск разрешён',
+      techControllerName: 'В. Громов',
+      departureAt,
+      returnAt: undefined,
+      odometerStart: dto.odometerStart,
+      odometerEnd: dto.odometerEnd ?? undefined,
+      driverName: driver.fullName,
+      licenseSeries: driver.licenseSeries,
+      licenseNumber: driver.licenseNumber,
+      licenseIssuedAt: driver.licenseIssuedAt,
+      licenseCategory: driver.licenseCategory,
+      snils: driver.snils,
+      medicalExamAt: `${dto.validFrom}T07:25:00`,
+      medicalExamResult: 'Допущен к управлению ТС',
+      medicName: 'С. Иванова',
+      carriageKind: SPECIAL_CARRIAGE,
+      messageKind: dto.messageKind ?? 'городское',
+    };
+
+    this.waybills = [waybill, ...this.waybills];
+    this.addEvent(
+      `Выдан путевой ${vehicle.name}`,
+      `${dto.validFrom}–${dto.validTo} · километраж ${dto.odometerStart} км`,
+    );
+    return this.getSnapshot();
+  }
+
+  updateWaybill(waybillId: string, dto: UpdateWaybillDto): GarageSnapshot {
+    const current = this.waybills.find((item) => item.id === waybillId);
+    if (!current) {
+      throw new NotFoundException('Путевой лист не найден');
+    }
+
+    const validFrom = dto.validFrom ?? current.validFrom;
+    const validTo = dto.validTo ?? current.validTo;
+    assertPeriod(validFrom, validTo);
+
+    const odometerStart = dto.odometerStart ?? current.odometerStart;
+    const odometerEnd =
+      dto.odometerEnd === null
+        ? undefined
+        : (dto.odometerEnd ?? current.odometerEnd);
+    assertOdometer(odometerStart, odometerEnd);
+
+    this.waybills = this.waybills.map((item) =>
+      item.id === waybillId
+        ? {
+            ...item,
+            validFrom,
+            validTo,
+            odometerStart,
+            odometerEnd,
+            messageKind: dto.messageKind ?? item.messageKind,
+            departureAt: dto.validFrom
+              ? `${validFrom}T08:00:00`
+              : item.departureAt,
+          }
+        : item,
+    );
+    this.addEvent(
+      `Обновлён путевой ${current.vehicleBrandModel}`,
+      `${validFrom}–${validTo} · километраж ${odometerStart} км`,
+    );
+    return this.getSnapshot();
+  }
+
   async exportExcel() {
     const snapshot = this.getSnapshot();
     return {
       filename: garageExcelFilename(snapshot),
       buffer: await buildGarageExcel(snapshot),
     };
+  }
+
+  private resolveDriverForNewVehicle(driverId?: string, driverName?: string) {
+    if (driverId) {
+      const existing = this.drivers.find((item) => item.id === driverId);
+      if (!existing) {
+        throw new BadRequestException('Водитель не найден');
+      }
+      return existing;
+    }
+
+    const fullName = driverName?.trim() || 'Не назначен';
+    if (!driverName?.trim()) {
+      const unassigned = this.drivers.find((item) => item.id === 'd-unassigned');
+      if (unassigned) return unassigned;
+      const created: Driver = {
+        id: 'd-unassigned',
+        fullName: 'Не назначен',
+        initials: 'НА',
+        licenseCategory: '—',
+        licenseSeries: '—',
+        licenseNumber: '—',
+        licenseIssuedAt: '2000-01-01',
+        snils: '000-000-000 00',
+      };
+      this.drivers = [...this.drivers, created];
+      return created;
+    }
+
+    const created: Driver = {
+      id: `d-${Date.now().toString(36)}`,
+      fullName,
+      initials: initialsFromName(fullName),
+      licenseCategory: 'C',
+      licenseSeries: '—',
+      licenseNumber: '—',
+      licenseIssuedAt: '2000-01-01',
+      snils: '000-000-000 00',
+    };
+    this.drivers = [...this.drivers, created];
+    return created;
   }
 
   private addEvent(

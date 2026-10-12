@@ -7,6 +7,11 @@ import {
   GARAGE_EXCEL_SHEETS,
 } from './garage-excel.js';
 import { GarageService } from './garage.service.js';
+import {
+  TEST_DRIVERS,
+  TEST_FLEET,
+  TEST_REQUESTS,
+} from './test-fixtures.js';
 
 async function loadWorkbook(buffer: Buffer) {
   const workbook = new ExcelJS.Workbook();
@@ -39,7 +44,12 @@ describe('garage Excel export', () => {
 
   it('builds a workbook with operational sheets and live snapshot data', async () => {
     const service = new GarageService();
-    service.assignRequest(1049, '11');
+    service.loadSeed({
+      fleet: TEST_FLEET,
+      drivers: TEST_DRIVERS,
+      requests: TEST_REQUESTS,
+    });
+    service.assignRequest(1049, '05');
     const snapshot = service.getSnapshot();
     const buffer = await buildGarageExcel(snapshot);
     const workbook = await loadWorkbook(buffer);
@@ -51,12 +61,12 @@ describe('garage Excel export', () => {
 
     const fleetRows = sheetValues(workbook.getWorksheet('Парк')!);
     expect(fleetRows[0]?.[1]).toBe('Бортовой №');
-    expect(fleetRows.some((row) => row[2] === 'JCB 3CX')).toBe(true);
+    expect(fleetRows.some((row) => row[2] === 'Тест Мини')).toBe(true);
 
     const requestRows = sheetValues(workbook.getWorksheet('Заявки')!);
     const assigned = requestRows.find((row) => row[1] === 1049);
     expect(assigned?.[8]).toBe('Назначена');
-    expect(assigned?.[10]).toBe('11');
+    expect(assigned?.[10]).toBe('05');
   });
 
   it('writes user-controlled request text as strings, not formulas', async () => {

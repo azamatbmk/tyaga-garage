@@ -65,9 +65,9 @@ export function WaybillPrintDocument({ waybill }: { waybill: Waybill }) {
           ["Контролёр", waybill.techControllerName],
           ["Выпуск на линию", formatDateTime(waybill.departureAt)],
           ["Возврат с линии", waybill.returnAt ? formatDateTime(waybill.returnAt) : "—"],
-          ["Одометр при выпуске", `${waybill.odometerStart.toLocaleString("ru-RU")} км`],
+          ["Километраж при выпуске", `${waybill.odometerStart.toLocaleString("ru-RU")} км`],
           [
-            "Одометр при возврате",
+            "Километраж при возврате",
             waybill.odometerEnd != null ? `${waybill.odometerEnd.toLocaleString("ru-RU")} км` : "—",
           ],
         ]}

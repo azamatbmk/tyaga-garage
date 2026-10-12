@@ -37,4 +37,10 @@ export class CreateRequestDto {
   @IsString()
   @MinLength(1)
   creatorId?: string;
+
+  /** Обязателен для диспетчера ГУП: в какой филиал класть заявку */
+  @IsOptional()
+  @IsString()
+  @MinLength(1)
+  branchId?: string;
 }

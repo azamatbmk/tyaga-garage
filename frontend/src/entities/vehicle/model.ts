@@ -22,8 +22,22 @@ export const STATUS: Record<Status, { label: string; short: string }> = {
   service: { label: "На обслуживании", short: "Сервис" },
 };
 
+/** Справочник типов для заявок, если в парке ещё нет техники */
+export const REQUEST_CATEGORIES = [
+  "Экскаватор-погрузчик",
+  "Экскаватор",
+  "Самосвал",
+  "Автокран",
+  "Мини-погрузчик",
+  "Бульдозер",
+  "Погрузчик",
+  "Автогрейдер",
+  "Каток",
+] as const;
+
 export function vehicleCategories(fleet: Vehicle[]) {
-  return [...new Set(fleet.map((vehicle) => vehicle.category))];
+  const fromFleet = [...new Set(fleet.map((vehicle) => vehicle.category))];
+  return fromFleet.length ? fromFleet : [...REQUEST_CATEGORIES];
 }
 
 export function countByStatus(fleet: Vehicle[]) {

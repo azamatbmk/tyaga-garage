@@ -2,7 +2,7 @@ export {
   APPLICANT_NAV,
   BRANCH_NAV,
   DISPATCHER_NAV,
-  NAV,
+  GUP_DISPATCHER_NAV,
   PAGE_COPY,
   type WorkspaceSection,
 } from "./navigation";

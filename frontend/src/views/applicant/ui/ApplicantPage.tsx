@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Plus } from "lucide-react";
-import { useGarage } from "@/entities/garage";
+import { filterSnapshotByBranch, useGarage } from "@/entities/garage";
 import { RequestCard, requestsByCreator } from "@/entities/request";
 import { CreateRequestDialog, useCreateRequest } from "@/features/create-request";
 import { RoleSwitcher, useRole } from "@/features/switch-role";
@@ -33,7 +33,10 @@ export function ApplicantPage() {
     return <div className={styles.boot}>Загружаем смену…</div>;
   }
 
-  const mine = requestsByCreator(snapshot.requests, persona.staffId);
+  const view = persona.branchId
+    ? filterSnapshotByBranch(snapshot, persona.branchId)
+    : snapshot;
+  const mine = requestsByCreator(view.requests, persona.staffId);
 
   return (
     <div className={styles.root}>
@@ -44,9 +47,9 @@ export function ApplicantPage() {
         onNavigate={() => setMenuOpen(false)}
         pending={mine.filter((item) => !item.assigned).length}
         service={0}
-        dispatchers={snapshot.dispatchers}
+        dispatchers={view.dispatchers}
         persona={persona}
-        branchName={snapshot.branch.name}
+        branchName={view.branch.name}
         open={menuOpen}
         showShift={false}
       />
@@ -65,7 +68,7 @@ export function ApplicantPage() {
             <div>
               <div className={styles.pageEyebrow}>
                 <span className={styles.liveDot} />
-                {snapshot.branch.name.toUpperCase()} / {ROLE_LABEL[persona.role].toUpperCase()}
+                {view.branch.name.toUpperCase()} / {ROLE_LABEL[persona.role].toUpperCase()}
               </div>
               <h1 className={styles.heading}>
                 Мои заявки

@@ -9,6 +9,7 @@ export function createRequest(body: {
   end: string;
   urgent: boolean;
   creatorId?: string;
+  branchId?: string;
 }) {
   return apiRequest<GarageSnapshot>("/api/requests", {
     method: "POST",

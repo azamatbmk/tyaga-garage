@@ -2,22 +2,31 @@
 
 import { useState } from "react";
 import { Plus } from "lucide-react";
-import { useGarage } from "@/entities/garage";
+import { filterSnapshotByBranch, useGarage } from "@/entities/garage";
 import { pendingRequests } from "@/entities/request";
 import { countByStatus, type Status } from "@/entities/vehicle";
+import { AddVehicleDialog, useAddVehicle } from "@/features/add-vehicle";
 import { useAssignDriver } from "@/features/assign-driver";
 import { AssignRequestDialog, useAssignRequest } from "@/features/assign-request";
 import { CreateRequestDialog, useCreateRequest } from "@/features/create-request";
 import { ExportGarageButton } from "@/features/export-garage";
 import { useFinishService } from "@/features/finish-service";
+import { useIssueWaybill, WaybillFormDialog } from "@/features/issue-waybill";
 import { PrintWaybillDialog, usePrintWaybill } from "@/features/print-waybill";
 import { RoleSwitcher, useRole } from "@/features/switch-role";
-import { DISPATCHER_NAV, PAGE_COPY, type WorkspaceSection } from "@/shared/config";
+import {
+  DISPATCHER_NAV,
+  GUP_DISPATCHER_NAV,
+  PAGE_COPY,
+  ROLE_LABEL,
+  type WorkspaceSection,
+} from "@/shared/config";
 import { ui } from "@/shared/ui";
 import { DispatchBoard } from "@/widgets/dispatch-board";
 import { EventsSheet } from "@/widgets/events-sheet";
 import { FleetPanel } from "@/widgets/fleet-panel";
 import { FuelBoard } from "@/widgets/fuel-board";
+import { GupBranchesBoard } from "@/widgets/gup-branches-board";
 import { Header } from "@/widgets/header";
 import { RequestsBoard } from "@/widgets/requests-board";
 import { ServiceBoard } from "@/widgets/service-board";
@@ -31,13 +40,16 @@ import styles from "@/shared/styles/layout.module.css";
 export function GaragePage() {
   const { snapshot, error } = useGarage();
   const { persona } = useRole();
+  const isGup = persona.role === "gup_dispatcher";
   const assign = useAssignRequest();
   const create = useCreateRequest();
+  const addVehicle = useAddVehicle();
   const finish = useFinishService();
   const drivers = useAssignDriver();
   const print = usePrintWaybill();
+  const waybillForm = useIssueWaybill();
 
-  const [section, setSection] = useState<WorkspaceSection>("dispatch");
+  const [section, setSection] = useState<WorkspaceSection>(isGup ? "branches" : "dispatch");
   const [menuOpen, setMenuOpen] = useState(false);
   const [selected, setSelected] = useState<string | null>(null);
   const [noticeOpen, setNoticeOpen] = useState(false);
@@ -47,6 +59,9 @@ export function GaragePage() {
   const [query, setQuery] = useState("");
   const [requestFilter, setRequestFilter] = useState<"pending" | "assigned" | "all">("pending");
   const [readCount, setReadCount] = useState(0);
+
+  const nav = isGup ? GUP_DISPATCHER_NAV : DISPATCHER_NAV;
+  const activeSection = !isGup && section === "branches" ? "dispatch" : section;
 
   function navigate(next: WorkspaceSection) {
     setSection(next);
@@ -79,29 +94,36 @@ export function GaragePage() {
     return <div className={styles.boot}>Загружаем смену…</div>;
   }
 
-  const pending = pendingRequests(snapshot.requests);
-  const serviceCount = countByStatus(snapshot.fleet).service;
-  const activeVehicle = snapshot.fleet.find((vehicle) => vehicle.id === selected) ?? null;
-  const sectionLabel = DISPATCHER_NAV.find((item) => item.id === section)?.label ?? "Диспетчерская";
+  const view = persona.branchId
+    ? filterSnapshotByBranch(snapshot, persona.branchId)
+    : snapshot;
+  const pending = pendingRequests(view.requests);
+  const serviceCount = countByStatus(view.fleet).service;
+  const activeVehicle = view.fleet.find((vehicle) => vehicle.id === selected) ?? null;
+  const sectionLabel = nav.find((item) => item.id === activeSection)?.label ?? "Диспетчерская";
+  const scopeLabel = isGup
+    ? `${view.branch.legalName.toUpperCase()} / ${ROLE_LABEL.gup_dispatcher.toUpperCase()}`
+    : `${view.branch.name.toUpperCase()} / СМЕНА 08:00–20:00`;
 
   return (
     <div className={styles.root}>
       {menuOpen && <button className={styles.backdrop} aria-label="Закрыть меню" onClick={() => setMenuOpen(false)} />}
       <Sidebar
-        view={section}
-        nav={DISPATCHER_NAV}
+        view={activeSection}
+        nav={nav}
         onNavigate={navigate}
         pending={pending.length}
         service={serviceCount}
-        dispatchers={snapshot.dispatchers}
+        dispatchers={view.dispatchers}
         persona={persona}
-        branchName={snapshot.branch.name}
+        branchName={isGup ? view.branch.legalName : view.branch.name}
         open={menuOpen}
       />
       <div className={styles.shell}>
         <Header
-          view={section}
-          unread={snapshot.events.length > readCount}
+          view={activeSection}
+          viewLabel={sectionLabel}
+          unread={view.events.length > readCount}
           onOpenMenu={() => setMenuOpen(true)}
           onOpenEvents={openEvents}
           onOpenTeam={() => navigate("team")}
@@ -112,29 +134,49 @@ export function GaragePage() {
             <div>
               <div className={styles.pageEyebrow}>
                 <span className={styles.liveDot} />
-                {snapshot.branch.name.toUpperCase()} / СМЕНА 08:00–20:00
+                {scopeLabel}
               </div>
               <h1 className={styles.heading}>
                 {sectionLabel}
                 <span className={styles.headingDot}>.</span>
               </h1>
-              <p>{PAGE_COPY[section]}</p>
+              <p>{PAGE_COPY[activeSection]}</p>
             </div>
             <div className={styles.pageActions}>
               <ExportGarageButton />
-              <button type="button" className={ui.primaryButton} onClick={create.start}>
-                <Plus size={19} />
-                Новая заявка
-              </button>
+              {activeSection === "waybills" ? (
+                <button type="button" className={ui.primaryButton} onClick={waybillForm.startCreate}>
+                  <Plus size={19} />
+                  Выдать путевой
+                </button>
+              ) : activeSection === "fleet" ? (
+                <button type="button" className={ui.primaryButton} onClick={addVehicle.start}>
+                  <Plus size={19} />
+                  Добавить технику
+                </button>
+              ) : activeSection !== "branches" ? (
+                <button type="button" className={ui.primaryButton} onClick={create.start}>
+                  <Plus size={19} />
+                  Новая заявка
+                </button>
+              ) : null}
             </div>
           </div>
 
-          {section === "dispatch" && (
+          {activeSection === "branches" && (
+            <GupBranchesBoard
+              snapshot={view}
+              onOpenRequest={(request) =>
+                request.assigned ? setSelected(request.assigned) : startAssign(request)
+              }
+            />
+          )}
+          {activeSection === "dispatch" && (
             <DispatchBoard
-              fleet={snapshot.fleet}
-              jobs={snapshot.jobs}
-              requests={snapshot.requests}
-              events={snapshot.events}
+              fleet={view.fleet}
+              jobs={view.jobs}
+              requests={view.requests}
+              events={view.events}
               allSchedule={allSchedule}
               scheduleMode={scheduleMode}
               onAllSchedule={setAllSchedule}
@@ -150,9 +192,9 @@ export function GaragePage() {
               onOpenEvents={openEvents}
             />
           )}
-          {section === "fleet" && (
+          {activeSection === "fleet" && (
             <FleetPanel
-              fleet={snapshot.fleet}
+              fleet={view.fleet}
               filter={fleetFilter}
               query={query}
               onFilter={setFleetFilter}
@@ -160,38 +202,42 @@ export function GaragePage() {
               onSelect={setSelected}
             />
           )}
-          {section === "requests" && (
+          {activeSection === "requests" && (
             <RequestsBoard
-              requests={snapshot.requests}
+              requests={view.requests}
               filter={requestFilter}
               onFilter={setRequestFilter}
               onOpen={(request) => (request.assigned ? setSelected(request.assigned) : startAssign(request))}
             />
           )}
-          {section === "waybills" && (
-            <WaybillsBoard waybills={snapshot.waybills} onPrint={print.printWaybill} />
+          {activeSection === "waybills" && (
+            <WaybillsBoard
+              waybills={view.waybills}
+              onPrint={print.printWaybill}
+              onEdit={waybillForm.startEdit}
+            />
           )}
-          {section === "timesheet" && (
-            <TimesheetBoard entries={snapshot.timesheet} drivers={snapshot.drivers} />
+          {activeSection === "timesheet" && (
+            <TimesheetBoard entries={view.timesheet} drivers={view.drivers} />
           )}
-          {section === "fuel" && <FuelBoard fuelings={snapshot.fuelings} fleet={snapshot.fleet} />}
-          {section === "team" && (
-            <TeamBoard dispatchers={snapshot.dispatchers} fleet={snapshot.fleet} onSelect={setSelected} />
+          {activeSection === "fuel" && <FuelBoard fuelings={view.fuelings} fleet={view.fleet} />}
+          {activeSection === "team" && (
+            <TeamBoard dispatchers={view.dispatchers} fleet={view.fleet} onSelect={setSelected} />
           )}
-          {section === "service" && <ServiceBoard fleet={snapshot.fleet} onSelect={setSelected} />}
+          {activeSection === "service" && <ServiceBoard fleet={view.fleet} onSelect={setSelected} />}
 
           <footer className={styles.footer}>
             <span>ТЯГА / Каждая смена в движении.</span>
-            <span>Демонстрационный гараж · 12.09.2026</span>
+            <span>{persona.name}</span>
           </footer>
         </main>
       </div>
 
       <VehicleSheet
         vehicle={activeVehicle}
-        jobs={snapshot.jobs}
+        jobs={view.jobs}
         pending={pending}
-        drivers={snapshot.drivers}
+        drivers={view.drivers}
         onClose={() => setSelected(null)}
         onAssign={startAssign}
         onFinishService={finish.complete}
@@ -199,7 +245,7 @@ export function GaragePage() {
       />
       <AssignRequestDialog
         request={assign.request}
-        fleet={snapshot.fleet}
+        fleet={view.fleet}
         vehicleId={assign.vehicleId}
         onVehicleId={assign.setVehicleId}
         onClose={assign.close}
@@ -213,13 +259,43 @@ export function GaragePage() {
         categories={create.categories}
         category={create.category}
         priority={create.priority}
+        branches={create.branches}
+        branchId={create.branchId}
+        onBranchId={create.setBranchId}
         onCategory={create.setCategory}
         onPriority={create.setPriority}
         onClose={create.close}
         onSubmit={create.submit}
       />
-      <EventsSheet open={noticeOpen} events={snapshot.events} onClose={() => setNoticeOpen(false)} />
+      {addVehicle.open && (
+        <AddVehicleDialog
+          key="add-vehicle"
+          open={addVehicle.open}
+          values={addVehicle.values}
+          branches={addVehicle.branches}
+          drivers={addVehicle.drivers}
+          scanning={addVehicle.scanning}
+          scanStatus={addVehicle.scanStatus}
+          lockBranch={Boolean(persona.branchId)}
+          onChange={addVehicle.setValues}
+          onClose={addVehicle.close}
+          onScanFile={addVehicle.scanFile}
+          onSubmit={addVehicle.submit}
+        />
+      )}
+      <EventsSheet open={noticeOpen} events={view.events} onClose={() => setNoticeOpen(false)} />
       <PrintWaybillDialog waybill={print.waybill} onClose={print.close} />
+      {waybillForm.open && (
+        <WaybillFormDialog
+          key={waybillForm.editing?.id ?? "create-waybill"}
+          open={waybillForm.open}
+          mode={waybillForm.mode}
+          fleet={view.fleet}
+          waybill={waybillForm.editing}
+          onClose={waybillForm.close}
+          onSubmit={waybillForm.submit}
+        />
+      )}
     </div>
   );
 }

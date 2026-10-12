@@ -1,5 +1,6 @@
 import { type FormEvent } from "react";
 import { Plus, X } from "lucide-react";
+import type { Branch } from "@/entities/garage";
 import { Modal, SelectField, ui } from "@/shared/ui";
 import styles from "@/shared/styles/overlays.module.css";
 
@@ -8,6 +9,9 @@ export function CreateRequestDialog({
   categories,
   category,
   priority,
+  branches,
+  branchId,
+  onBranchId,
   onCategory,
   onPriority,
   onClose,
@@ -17,6 +21,9 @@ export function CreateRequestDialog({
   categories: string[];
   category: string;
   priority: string;
+  branches?: Branch[];
+  branchId?: string;
+  onBranchId?: (value: string) => void;
   onCategory: (value: string) => void;
   onPriority: (value: string) => void;
   onClose: () => void;
@@ -34,8 +41,16 @@ export function CreateRequestDialog({
           </button>
         </div>
         <h2 id="create-title">Новая заявка</h2>
-        <p className={styles.description}>12 сентября · дневная смена 08:00–20:00</p>
+        <p className={styles.description}>Дневная смена 08:00–20:00</p>
         <form onSubmit={onSubmit} className={styles.form}>
+          {branches && onBranchId && branchId != null && (
+            <SelectField
+              label="Филиал"
+              value={branchId}
+              onChange={onBranchId}
+              options={branches.map((item) => ({ value: item.id, label: item.name }))}
+            />
+          )}
           <label className={ui.formField}>
             Какие работы нужно выполнить?
             <input required maxLength={80} name="title" placeholder="Например, разработка котлована" />

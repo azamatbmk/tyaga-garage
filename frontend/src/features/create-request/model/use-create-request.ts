@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
-import { useGarage } from "@/entities/garage";
+import { filterSnapshotByBranch, useGarage } from "@/entities/garage";
 import { vehicleCategories } from "@/entities/vehicle";
 import { useRole } from "@/shared/model/role-store";
 import { useToast } from "@/shared/ui";
@@ -12,18 +12,38 @@ export function useCreateRequest() {
   const { persona } = useRole();
   const { showToast } = useToast();
   const [open, setOpen] = useState(false);
-  const categories = snapshot ? vehicleCategories(snapshot.fleet) : [];
+  const isGup = persona.role === "gup_dispatcher";
+  const branches = snapshot?.branches ?? [];
+  const [branchId, setBranchId] = useState(persona.branchId ?? branches[0]?.id ?? "");
+  const scopedFleet =
+    snapshot && (persona.branchId || branchId)
+      ? filterSnapshotByBranch(snapshot, persona.branchId ?? branchId).fleet
+      : snapshot?.fleet;
+  const categories = scopedFleet ? vehicleCategories(scopedFleet) : [];
   const [category, setCategory] = useState(categories[0] ?? "");
   const [priority, setPriority] = useState("normal");
 
   function start() {
-    setCategory(categories[0] ?? "");
+    const nextBranch = persona.branchId ?? branches[0]?.id ?? "";
+    setBranchId(nextBranch);
+    const fleetForStart =
+      snapshot && nextBranch
+        ? filterSnapshotByBranch(snapshot, nextBranch).fleet
+        : snapshot?.fleet;
+    setCategory(fleetForStart ? vehicleCategories(fleetForStart)[0] ?? "" : "");
     setPriority("normal");
     setOpen(true);
   }
 
   function close() {
     setOpen(false);
+  }
+
+  function selectBranch(next: string) {
+    setBranchId(next);
+    if (!snapshot) return;
+    const nextCategories = vehicleCategories(filterSnapshotByBranch(snapshot, next).fleet);
+    setCategory(nextCategories[0] ?? "");
   }
 
   async function submit(event: FormEvent<HTMLFormElement>) {
@@ -38,6 +58,7 @@ export function useCreateRequest() {
         end: String(form.get("end")),
         urgent: priority === "urgent",
         creatorId: persona.staffId,
+        ...(isGup ? { branchId } : {}),
       });
       setSnapshot(next);
       close();
@@ -47,5 +68,18 @@ export function useCreateRequest() {
     }
   }
 
-  return { open, categories, category, setCategory, priority, setPriority, start, close, submit };
+  return {
+    open,
+    categories,
+    category,
+    setCategory,
+    priority,
+    setPriority,
+    branches: isGup ? branches : undefined,
+    branchId,
+    setBranchId: selectBranch,
+    start,
+    close,
+    submit,
+  };
 }

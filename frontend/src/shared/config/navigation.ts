@@ -1,4 +1,5 @@
 export type WorkspaceSection =
+  | "branches"
   | "dispatch"
   | "fleet"
   | "requests"
@@ -21,6 +22,12 @@ export const DISPATCHER_NAV: { id: WorkspaceSection; label: string }[] = [
   { id: "service", label: "Обслуживание" },
 ];
 
+/** Диспетчер ГУП: полный UI филиала + сводка по всем филиалам */
+export const GUP_DISPATCHER_NAV: { id: WorkspaceSection; label: string }[] = [
+  { id: "branches", label: "Филиалы" },
+  ...DISPATCHER_NAV,
+];
+
 export const APPLICANT_NAV: { id: WorkspaceSection; label: string }[] = [
   { id: "my-requests", label: "Мои заявки" },
 ];
@@ -29,14 +36,12 @@ export const BRANCH_NAV: { id: WorkspaceSection; label: string }[] = [
   { id: "branch-requests", label: "Заявки филиала" },
 ];
 
-/** @deprecated use DISPATCHER_NAV — kept for Header breadcrumbs fallback */
-export const NAV = DISPATCHER_NAV;
-
 export const PAGE_COPY: Partial<Record<WorkspaceSection, string>> = {
+  branches: "Контроль филиалов: очередь, назначения и парк. Можно назначить технику прямо отсюда.",
   dispatch: "Каждая машина на своём месте. Каждый выезд под контролем.",
-  fleet: "Состояние, загрузка и готовность каждой единицы техники.",
+  fleet: "Состояние парка. Новую машину можно внести вручную или со скана техпаспорта.",
   requests: "От новой задачи до назначенного экипажа.",
-  waybills: "Путевые по приказу Минтранса № 390: срок, ТС, водитель, медосмотр, контроль.",
+  waybills: "Выдача на любой срок: километраж вручную, печать по приказу № 390.",
   timesheet: "Табель ГУП: сверхурочные и выходные от заявок.",
   fuel: "Заправки по чекам и топливной программе.",
   team: "Диспетчеры и экипажи сегодняшней смены.",

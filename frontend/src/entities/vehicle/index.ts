@@ -1,4 +1,4 @@
-export { countByStatus, STATUS, vehicleCategories } from "./model";
+export { countByStatus, REQUEST_CATEGORIES, STATUS, vehicleCategories } from "./model";
 export type { Status, Vehicle } from "./model";
 export { FleetTable } from "./ui/fleet-table";
 export { StatusBadge } from "./ui/status-badge";

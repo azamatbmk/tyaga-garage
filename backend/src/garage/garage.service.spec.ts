@@ -1,25 +1,55 @@
 import { BadRequestException } from '@nestjs/common';
 import { GarageService } from './garage.service.js';
+import {
+  TEST_DRIVERS,
+  TEST_FLEET,
+  TEST_REQUESTS,
+  TEST_WAYBILLS,
+} from './test-fixtures.js';
+
+function serviceWithFixtures() {
+  const service = new GarageService();
+  service.loadSeed({
+    fleet: TEST_FLEET,
+    drivers: TEST_DRIVERS,
+    requests: TEST_REQUESTS,
+    waybills: TEST_WAYBILLS,
+  });
+  return service;
+}
 
 describe('GarageService', () => {
   let service: GarageService;
 
   beforeEach(() => {
-    service = new GarageService();
+    service = serviceWithFixtures();
+  });
+
+  it('starts empty without fixtures', () => {
+    const empty = new GarageService().getSnapshot();
+    expect(empty.fleet).toEqual([]);
+    expect(empty.requests).toEqual([]);
+    expect(empty.waybills).toEqual([]);
+    expect(empty.demo).toBe(false);
+    expect(empty.branches).toHaveLength(9);
   });
 
   it('assigns a ready vehicle of the matching category', () => {
-    const snapshot = service.assignRequest(1049, '11');
+    const snapshot = service.assignRequest(1049, '05');
     const request = snapshot.requests.find((item) => item.id === 1049);
-    const vehicle = snapshot.fleet.find((item) => item.id === '11');
+    const vehicle = snapshot.fleet.find((item) => item.id === '05');
 
-    expect(request?.assigned).toBe('11');
+    expect(request?.assigned).toBe('05');
     expect(vehicle?.status).toBe('reserved');
-    expect(snapshot.jobs.some((job) => job.id === 1049 && job.vehicle === '11')).toBe(true);
+    expect(snapshot.jobs.some((job) => job.id === 1049 && job.vehicle === '05')).toBe(true);
   });
 
   it('rejects an already assigned request', () => {
-    service.assignRequest(1049, '11');
+    service.assignRequest(1049, '05');
+    expect(() => service.assignRequest(1049, '05')).toThrow(BadRequestException);
+  });
+
+  it('rejects assigning a vehicle from another branch', () => {
     expect(() => service.assignRequest(1049, '11')).toThrow(BadRequestException);
   });
 
@@ -59,10 +89,10 @@ describe('GarageService', () => {
   });
 
   it('reassigns a driver on a vehicle', () => {
-    const snapshot = service.assignDriver('01', { driverId: 'd13' });
+    const snapshot = service.assignDriver('01', { driverId: 'd02' });
     const vehicle = snapshot.fleet.find((item) => item.id === '01');
-    expect(vehicle?.driverId).toBe('d13');
-    expect(vehicle?.driver).toBe('Кирилл Малов');
+    expect(vehicle?.driverId).toBe('d02');
+    expect(vehicle?.driver).toBe('Другой Водитель');
   });
 
   it('attaches creator and branch when creating a request', () => {
@@ -77,7 +107,120 @@ describe('GarageService', () => {
     });
     expect(snapshot.requests[0]).toMatchObject({
       creatorId: 'u-mechanic',
-      branchId: 'b1',
+      branchId: 'b-vlad',
     });
+  });
+
+  it('lets GUP dispatcher create a request for a chosen branch', () => {
+    const snapshot = service.createRequest({
+      title: 'От ГУП',
+      location: 'Беслан',
+      category: 'Бульдозер',
+      start: '13:00',
+      end: '17:00',
+      urgent: false,
+      creatorId: 'u-gup-dispatcher',
+      branchId: 'b-prav',
+    });
+    expect(snapshot.requests[0]).toMatchObject({
+      creatorId: 'u-gup-dispatcher',
+      branchId: 'b-prav',
+      category: 'Бульдозер',
+    });
+  });
+
+  it('rejects GUP create without branchId', () => {
+    expect(() =>
+      service.createRequest({
+        title: 'Без филиала',
+        location: 'База',
+        category: 'Экскаватор-погрузчик',
+        start: '13:00',
+        end: '17:00',
+        urgent: false,
+        creatorId: 'u-gup-dispatcher',
+      }),
+    ).toThrow(BadRequestException);
+  });
+
+  it('creates a waybill for any period with manual odometer', () => {
+    const snapshot = service.createWaybill({
+      vehicleId: '05',
+      validFrom: '2026-09-15',
+      validTo: '2026-09-20',
+      odometerStart: 50100,
+      messageKind: 'пригородное',
+    });
+    expect(snapshot.waybills[0]).toMatchObject({
+      vehicleId: '05',
+      validFrom: '2026-09-15',
+      validTo: '2026-09-20',
+      odometerStart: 50100,
+      messageKind: 'пригородное',
+    });
+  });
+
+  it('updates waybill period and odometer', () => {
+    const snapshot = service.updateWaybill('w-01', {
+      validFrom: '2026-09-01',
+      validTo: '2026-09-30',
+      odometerStart: 124600,
+      odometerEnd: 125000,
+    });
+    const waybill = snapshot.waybills.find((item) => item.id === 'w-01');
+    expect(waybill).toMatchObject({
+      validFrom: '2026-09-01',
+      validTo: '2026-09-30',
+      odometerStart: 124600,
+      odometerEnd: 125000,
+    });
+  });
+
+  it('rejects inverted waybill period', () => {
+    expect(() =>
+      service.createWaybill({
+        vehicleId: '05',
+        validFrom: '2026-09-20',
+        validTo: '2026-09-15',
+        odometerStart: 100,
+      }),
+    ).toThrow(BadRequestException);
+  });
+
+  it('creates a vehicle in a branch park', () => {
+    const empty = new GarageService();
+    const snapshot = empty.createVehicle({
+      name: 'JCB 3CX',
+      category: 'Экскаватор-погрузчик',
+      plate: 'А 123 АА · 15',
+      branchId: 'b-vlad',
+      capacity: 'Ковш 1 м³',
+    });
+    expect(snapshot.fleet[0]).toMatchObject({
+      name: 'JCB 3CX',
+      category: 'Экскаватор-погрузчик',
+      branchId: 'b-vlad',
+      status: 'ready',
+      driver: 'Не назначен',
+    });
+    expect(snapshot.drivers.some((item) => item.id === 'd-unassigned')).toBe(true);
+  });
+
+  it('rejects duplicate plate', () => {
+    const empty = new GarageService();
+    empty.createVehicle({
+      name: 'A',
+      category: 'Самосвал',
+      plate: 'М 001 ММ 15',
+      branchId: 'b-vlad',
+    });
+    expect(() =>
+      empty.createVehicle({
+        name: 'B',
+        category: 'Самосвал',
+        plate: 'м 001 мм 15',
+        branchId: 'b-prav',
+      }),
+    ).toThrow(BadRequestException);
   });
 });

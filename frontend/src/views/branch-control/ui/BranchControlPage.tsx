@@ -1,8 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { useGarage } from "@/entities/garage";
-import { RequestCard, requestsByBranch } from "@/entities/request";
+import { filterSnapshotByBranch, useGarage } from "@/entities/garage";
+import { RequestCard } from "@/entities/request";
 import { RoleSwitcher, useRole } from "@/features/switch-role";
 import { BRANCH_NAV, PAGE_COPY, ROLE_LABEL, type WorkspaceSection } from "@/shared/config";
 import { Tabs, ui } from "@/shared/ui";
@@ -31,7 +31,10 @@ export function BranchControlPage() {
     return <div className={styles.boot}>Загружаем смену…</div>;
   }
 
-  const branchRequests = requestsByBranch(snapshot.requests, snapshot.branch.id);
+  const view = persona.branchId
+    ? filterSnapshotByBranch(snapshot, persona.branchId)
+    : snapshot;
+  const branchRequests = view.requests;
   const pending = branchRequests.filter((item) => !item.assigned);
   const assigned = branchRequests.filter((item) => item.assigned);
   const visible = branchRequests.filter((item) =>
@@ -39,7 +42,7 @@ export function BranchControlPage() {
   );
 
   const staffName = (creatorId: string) =>
-    snapshot.staff.find((user) => user.id === creatorId)?.name ?? creatorId;
+    view.staff.find((user) => user.id === creatorId)?.name ?? creatorId;
 
   return (
     <div className={styles.root}>
@@ -50,9 +53,9 @@ export function BranchControlPage() {
         onNavigate={() => setMenuOpen(false)}
         pending={pending.length}
         service={0}
-        dispatchers={snapshot.dispatchers}
+        dispatchers={view.dispatchers}
         persona={persona}
-        branchName={snapshot.branch.name}
+        branchName={view.branch.name}
         open={menuOpen}
         showShift={false}
       />
@@ -71,7 +74,7 @@ export function BranchControlPage() {
             <div>
               <div className={styles.pageEyebrow}>
                 <span className={styles.liveDot} />
-                {snapshot.branch.name.toUpperCase()} / {ROLE_LABEL[persona.role].toUpperCase()}
+                {view.branch.name.toUpperCase()} / {ROLE_LABEL[persona.role].toUpperCase()}
               </div>
               <h1 className={styles.heading}>
                 Заявки филиала

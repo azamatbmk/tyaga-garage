@@ -60,6 +60,7 @@ export type Waybill = {
   id: string;
   vehicleId: string;
   driverId: string;
+  branchId: string;
   validFrom: string;
   validTo: string;
   issuerName: string;
@@ -109,9 +110,11 @@ export type Fueling = {
 };
 
 export type GarageSnapshot = {
-  demo: true;
+  demo: boolean;
   date: string;
   snapshotTime: string;
+  branches: Branch[];
+  /** @deprecated используйте branches */
   branch: Branch;
   staff: StaffUser[];
   drivers: Driver[];
