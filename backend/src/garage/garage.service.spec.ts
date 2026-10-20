@@ -25,13 +25,17 @@ describe('GarageService', () => {
     service = serviceWithFixtures();
   });
 
-  it('starts empty without fixtures', () => {
+  it('starts with one vehicle per branch from seed', () => {
     const empty = new GarageService().getSnapshot();
-    expect(empty.fleet).toEqual([]);
-    expect(empty.requests).toEqual([]);
+    expect(empty.fleet).toHaveLength(9);
+    expect(empty.drivers).toHaveLength(9);
+    expect(new Set(empty.fleet.map((item) => item.branchId)).size).toBe(9);
     expect(empty.waybills).toEqual([]);
     expect(empty.demo).toBe(false);
     expect(empty.branches).toHaveLength(9);
+    expect(empty.branches[0]?.name).toBe('Владикавказский');
+    expect(empty.branches.some((item) => item.id === 'gup')).toBe(false);
+    expect(empty.staff.filter((item) => item.branchId === 'gup')).toHaveLength(3);
   });
 
   it('assigns a ready vehicle of the matching category', () => {
@@ -119,11 +123,11 @@ describe('GarageService', () => {
       start: '13:00',
       end: '17:00',
       urgent: false,
-      creatorId: 'u-gup-dispatcher',
+      creatorId: 'u-senior-dispatcher',
       branchId: 'b-prav',
     });
     expect(snapshot.requests[0]).toMatchObject({
-      creatorId: 'u-gup-dispatcher',
+      creatorId: 'u-senior-dispatcher',
       branchId: 'b-prav',
       category: 'Бульдозер',
     });
@@ -138,7 +142,23 @@ describe('GarageService', () => {
         start: '13:00',
         end: '17:00',
         urgent: false,
-        creatorId: 'u-gup-dispatcher',
+        creatorId: 'u-senior-dispatcher',
+      }),
+    ).toThrow(BadRequestException);
+  });
+
+  it('rejects preferred vehicle that is not ready', () => {
+    expect(() =>
+      service.createRequest({
+        title: 'Занятая машина',
+        location: 'Объект',
+        category: 'Бульдозер',
+        start: '13:00',
+        end: '17:00',
+        urgent: false,
+        creatorId: 'u-senior-dispatcher',
+        branchId: 'b-prav',
+        preferredVehicleId: '06',
       }),
     ).toThrow(BadRequestException);
   });

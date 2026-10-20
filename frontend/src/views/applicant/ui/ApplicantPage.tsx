@@ -109,8 +109,11 @@ export function ApplicantPage() {
         categories={create.categories}
         category={create.category}
         priority={create.priority}
+        fleet={create.fleet}
+        preferredVehicleId={create.preferredVehicleId}
         onCategory={create.setCategory}
         onPriority={create.setPriority}
+        onPreferredVehicleId={create.setPreferredVehicleId}
         onClose={create.close}
         onSubmit={create.submit}
       />

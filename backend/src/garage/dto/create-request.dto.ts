@@ -43,4 +43,10 @@ export class CreateRequestDto {
   @IsString()
   @MinLength(1)
   branchId?: string;
+
+  /** Конкретная машина по борту/госномеру */
+  @IsOptional()
+  @IsString()
+  @MinLength(1)
+  preferredVehicleId?: string;
 }

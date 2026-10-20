@@ -25,7 +25,13 @@ import {
 } from './seed.js';
 import { buildGarageExcel, garageExcelFilename } from './garage-excel.js';
 import {
-  GUP_SCOPE_ID,
+  defaultGarageDataPath,
+  isGaragePersistEnabled,
+  loadGarageState,
+  saveGarageState,
+} from './garage-persist.js';
+import {
+  isTransportUnitRole,
   type Driver,
   type Fueling,
   type GarageEvent,
@@ -115,9 +121,16 @@ export class GarageService {
   private waybills: Waybill[] = clone(INITIAL_WAYBILLS);
   private timesheet: TimesheetEntry[] = clone(INITIAL_TIMESHEET);
   private fuelings: Fueling[] = clone(INITIAL_FUELINGS);
+  private persistenceEnabled = isGaragePersistEnabled();
+  private readonly dataPath = defaultGarageDataPath();
 
-  /** Подмена состояния — только для unit-тестов */
+  constructor() {
+    this.hydrateFromDisk();
+  }
+
+  /** Подмена состояния — только для unit-тестов (без записи на диск) */
   loadSeed(seed: GarageSeedState) {
+    this.persistenceEnabled = false;
     if (seed.fleet) this.fleet = clone(seed.fleet);
     if (seed.jobs) this.jobs = clone(seed.jobs);
     if (seed.requests) this.requests = clone(seed.requests);
@@ -161,9 +174,9 @@ export class GarageService {
       throw new BadRequestException('Неизвестный заявитель');
     }
 
-    const isGupCreator = creator.branchId === GUP_SCOPE_ID;
+    const isTuCreator = isTransportUnitRole(creator.role);
     let branchId = creator.branchId;
-    if (isGupCreator) {
+    if (isTuCreator) {
       if (!dto.branchId || !DEMO_BRANCHES.some((item) => item.id === dto.branchId)) {
         throw new BadRequestException('Укажите филиал для заявки');
       }
@@ -174,6 +187,24 @@ export class GarageService {
 
     if (!(REQUEST_CATEGORIES as readonly string[]).includes(dto.category)) {
       throw new BadRequestException('Неизвестный тип техники');
+    }
+
+    let preferredVehicleId: string | undefined;
+    let preferredPlate: string | undefined;
+    if (dto.preferredVehicleId) {
+      const preferred = this.fleet.find((item) => item.id === dto.preferredVehicleId);
+      if (
+        !preferred ||
+        preferred.branchId !== branchId ||
+        preferred.category !== dto.category ||
+        preferred.status !== 'ready'
+      ) {
+        throw new BadRequestException(
+          'Выберите свободную машину нужного типа в филиале заявки',
+        );
+      }
+      preferredVehicleId = preferred.id;
+      preferredPlate = preferred.plate;
     }
 
     const start = toHours(dto.start);
@@ -196,11 +227,19 @@ export class GarageService {
         urgent: dto.urgent,
         branchId,
         creatorId: creator.id,
+        preferredVehicleId,
+        preferredPlate,
       },
       ...this.requests,
     ];
-    this.addEvent(`Новая заявка № ${id}`, `${location} · ${dto.category}`, 'request');
-    return this.getSnapshot();
+    this.addEvent(
+      `Новая заявка № ${id}`,
+      preferredPlate
+        ? `${location} · ${dto.category} · ${preferredPlate}`
+        : `${location} · ${dto.category}`,
+      'request',
+    );
+    return this.commit();
   }
 
   assignRequest(requestId: number, vehicleId: string): GarageSnapshot {
@@ -246,7 +285,7 @@ export class GarageService {
       `Заявка № ${request.id} распределена`,
       `${vehicle.name} · ${vehicle.driver}`,
     );
-    return this.getSnapshot();
+    return this.commit();
   }
 
   assignDriver(vehicleId: string, dto: AssignDriverDto): GarageSnapshot {
@@ -274,7 +313,7 @@ export class GarageService {
       `${vehicle.name}: сменён водитель`,
       `${driver.fullName} · кат. ${driver.licenseCategory}`,
     );
-    return this.getSnapshot();
+    return this.commit();
   }
 
   finishService(vehicleId: string): GarageSnapshot {
@@ -293,7 +332,7 @@ export class GarageService {
       `${vehicle.name} возвращена в парк`,
       'Обслуживание завершено · техника готова к выезду',
     );
-    return this.getSnapshot();
+    return this.commit();
   }
 
   createVehicle(dto: CreateVehicleDto): GarageSnapshot {
@@ -330,7 +369,7 @@ export class GarageService {
       `${vehicle.plate} · ${vehicle.category} · ${vehicle.driver}`,
       'ready',
     );
-    return this.getSnapshot();
+    return this.commit();
   }
 
   createWaybill(dto: CreateWaybillDto): GarageSnapshot {
@@ -390,7 +429,7 @@ export class GarageService {
       `Выдан путевой ${vehicle.name}`,
       `${dto.validFrom}–${dto.validTo} · километраж ${dto.odometerStart} км`,
     );
-    return this.getSnapshot();
+    return this.commit();
   }
 
   updateWaybill(waybillId: string, dto: UpdateWaybillDto): GarageSnapshot {
@@ -429,7 +468,7 @@ export class GarageService {
       `Обновлён путевой ${current.vehicleBrandModel}`,
       `${validFrom}–${validTo} · километраж ${odometerStart} км`,
     );
-    return this.getSnapshot();
+    return this.commit();
   }
 
   async exportExcel() {
@@ -438,6 +477,40 @@ export class GarageService {
       filename: garageExcelFilename(snapshot),
       buffer: await buildGarageExcel(snapshot),
     };
+  }
+
+  private hydrateFromDisk() {
+    if (!this.persistenceEnabled) return;
+    const saved = loadGarageState(this.dataPath);
+    if (!saved) return;
+    // Старый пустой garage.json — оставляем сид целиком (парк + демо-заявки)
+    if (saved.fleet.length === 0 && INITIAL_FLEET.length > 0) {
+      return;
+    }
+    this.fleet = clone(saved.fleet);
+    this.jobs = clone(saved.jobs);
+    this.requests = clone(saved.requests);
+    this.events = clone(saved.events);
+    this.drivers = clone(saved.drivers);
+    this.waybills = clone(saved.waybills);
+    this.timesheet = clone(saved.timesheet);
+    this.fuelings = clone(saved.fuelings);
+  }
+
+  private commit(): GarageSnapshot {
+    if (this.persistenceEnabled) {
+      saveGarageState(this.dataPath, {
+        fleet: this.fleet,
+        jobs: this.jobs,
+        requests: this.requests,
+        events: this.events,
+        drivers: this.drivers,
+        waybills: this.waybills,
+        timesheet: this.timesheet,
+        fuelings: this.fuelings,
+      });
+    }
+    return this.getSnapshot();
   }
 
   private resolveDriverForNewVehicle(driverId?: string, driverName?: string) {

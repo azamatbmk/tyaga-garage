@@ -13,19 +13,35 @@ export type WorkspaceSection =
 
 export const DISPATCHER_NAV: { id: WorkspaceSection; label: string }[] = [
   { id: "dispatch", label: "Диспетчерская" },
-  { id: "fleet", label: "Парк техники" },
   { id: "requests", label: "Заявки" },
-  { id: "waybills", label: "Путевые" },
-  { id: "timesheet", label: "Табель" },
-  { id: "fuel", label: "Топливо" },
+  { id: "fleet", label: "Парк техники" },
   { id: "team", label: "Команда" },
   { id: "service", label: "Обслуживание" },
 ];
 
-/** Диспетчер ГУП: полный UI филиала + сводка по всем филиалам */
+/** Вкладки внутри «Парк техники» */
+export type FleetTab = "units" | "waybills" | "timesheet" | "fuel";
+
+export const FLEET_TABS: { id: FleetTab; label: string }[] = [
+  { id: "units", label: "Техника" },
+  { id: "waybills", label: "Путевые" },
+  { id: "timesheet", label: "Табель" },
+  { id: "fuel", label: "Топливо" },
+];
+
+export const FLEET_TAB_COPY: Record<FleetTab, string> = {
+  units: "Парк: статус и куда назначена каждая машина. Добавление — вручную или со скана ПТС/СТС.",
+  waybills: "Выдача на любой срок: километраж вручную, печать по приказу № 390.",
+  timesheet: "Табель ГУП: сверхурочные и выходные от заявок.",
+  fuel: "Заправки по чекам и топливной программе.",
+};
+
+/** Аппарат ТУ РПВВ: операционка + контроль всех филиалов */
 export const GUP_DISPATCHER_NAV: { id: WorkspaceSection; label: string }[] = [
+  DISPATCHER_NAV[0],
+  DISPATCHER_NAV[1],
   { id: "branches", label: "Филиалы" },
-  ...DISPATCHER_NAV,
+  ...DISPATCHER_NAV.slice(2),
 ];
 
 export const APPLICANT_NAV: { id: WorkspaceSection; label: string }[] = [
@@ -37,13 +53,10 @@ export const BRANCH_NAV: { id: WorkspaceSection; label: string }[] = [
 ];
 
 export const PAGE_COPY: Partial<Record<WorkspaceSection, string>> = {
-  branches: "Контроль филиалов: очередь, назначения и парк. Можно назначить технику прямо отсюда.",
+  branches: "Контроль филиалов из ТУ РПВВ: очередь, парк и куда назначена техника.",
   dispatch: "Каждая машина на своём месте. Каждый выезд под контролем.",
-  fleet: "Состояние парка. Новую машину можно внести вручную или со скана техпаспорта.",
+  fleet: "Техника, путевые, табель и топливо — всё по парку.",
   requests: "От новой задачи до назначенного экипажа.",
-  waybills: "Выдача на любой срок: километраж вручную, печать по приказу № 390.",
-  timesheet: "Табель ГУП: сверхурочные и выходные от заявок.",
-  fuel: "Заправки по чекам и топливной программе.",
   team: "Диспетчеры и экипажи сегодняшней смены.",
   service: "Плановые работы и возвращение техники в строй.",
   "my-requests": "Ваши заявки на технику. Статус и создание новых.",

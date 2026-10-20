@@ -16,7 +16,14 @@ import {
 } from "lucide-react";
 import type { Job } from "@/entities/garage";
 import { RequestCard, type RequestItem } from "@/entities/request";
-import { FleetTable, STATUS, VehicleIcon, type Status, type Vehicle } from "@/entities/vehicle";
+import {
+  buildVehicleAssignments,
+  FleetTable,
+  STATUS,
+  VehicleIcon,
+  type Status,
+  type Vehicle,
+} from "@/entities/vehicle";
 import { cx, formatTime, shortName } from "@/shared/lib";
 import { Tabs, ui } from "@/shared/ui";
 import styles from "./dispatch.module.css";
@@ -71,6 +78,11 @@ export function DispatchBoard({
       : allSchedule
         ? `Весь парк · ${fleet.length}`
         : `В фокусе · ${Math.min(focusLimit, fleet.length)} из ${fleet.length}`;
+  const fleetAssignments = buildVehicleAssignments(
+    visibleFleet.map((item) => item.id),
+    jobs,
+    requests,
+  );
 
   return (
     <>
@@ -271,7 +283,11 @@ export function DispatchBoard({
                 </div>
               </div>
             ) : (
-              <FleetTable vehicles={visibleFleet} onSelect={onSelect} />
+              <FleetTable
+                vehicles={visibleFleet}
+                assignments={fleetAssignments}
+                onSelect={onSelect}
+              />
             )}
 
             <div className={styles.footer}>

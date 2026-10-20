@@ -1,7 +1,9 @@
 export type Status = 'working' | 'ready' | 'reserved' | 'service';
 
 export type StaffRole =
-  | 'gup_dispatcher'
+  | 'transport_chief'
+  | 'transport_deputy'
+  | 'senior_dispatcher'
   | 'dispatcher'
   | 'branch_chief'
   | 'department_head'
@@ -9,8 +11,22 @@ export type StaffRole =
   | 'mechanic'
   | 'master';
 
-/** Специальный branchId для сотрудников аппарата ГУП */
+/**
+ * Привязка сотрудников аппарата ТУ РПВВ (не филиал).
+ * В списке branches этого id нет.
+ */
 export const GUP_SCOPE_ID = 'gup';
+
+/** Роли транспортного управления РПВВ — видят все филиалы */
+export const TRANSPORT_UNIT_ROLES: readonly StaffRole[] = [
+  'transport_chief',
+  'transport_deputy',
+  'senior_dispatcher',
+] as const;
+
+export function isTransportUnitRole(role: StaffRole): boolean {
+  return (TRANSPORT_UNIT_ROLES as readonly string[]).includes(role);
+}
 
 export type Branch = {
   id: string;
@@ -27,7 +43,7 @@ export type StaffUser = {
   name: string;
   initials: string;
   role: StaffRole;
-  /** Филиал или GUP_SCOPE_ID для диспетчера ГУП */
+  /** Филиал или GUP_SCOPE_ID для аппарата ТУ РПВВ */
   branchId: string;
 };
 
@@ -77,6 +93,9 @@ export type Request = {
   urgent: boolean;
   branchId: string;
   creatorId: string;
+  /** Желаемая машина (по госномеру при создании заявки) */
+  preferredVehicleId?: string;
+  preferredPlate?: string;
   assigned?: string;
 };
 

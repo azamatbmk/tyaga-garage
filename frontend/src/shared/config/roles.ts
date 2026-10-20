@@ -1,5 +1,7 @@
 export type StaffRole =
-  | "gup_dispatcher"
+  | "transport_chief"
+  | "transport_deputy"
+  | "senior_dispatcher"
   | "dispatcher"
   | "branch_chief"
   | "department_head"
@@ -16,28 +18,62 @@ export type DemoPersona = {
   label: string;
   name: string;
   initials: string;
-  /** Филиал персоны; null у диспетчера ГУП */
+  /** Филиал; null у аппарата ТУ РПВВ (видят все филиалы) */
   branchId: string | null;
 };
 
+/** Роли транспортного управления РПВВ — контроль всех филиалов */
+export const TRANSPORT_UNIT_ROLES: readonly StaffRole[] = [
+  "transport_chief",
+  "transport_deputy",
+  "senior_dispatcher",
+] as const;
+
+export function isTransportUnitRole(role: StaffRole): boolean {
+  return (TRANSPORT_UNIT_ROLES as readonly string[]).includes(role);
+}
+
+export const TRANSPORT_UNIT_SHORT = "ТУ РПВВ";
+export const TRANSPORT_UNIT_LABEL = "Транспортное управление РПВВ";
+
 export const ROLE_LABEL: Record<StaffRole, string> = {
-  gup_dispatcher: "Диспетчер ГУП",
+  transport_chief: "Начальник ТУ",
+  transport_deputy: "Зам. начальника ТУ",
+  senior_dispatcher: "Старший диспетчер",
   dispatcher: "Диспетчер филиала",
   branch_chief: "Начальник филиала",
   department_head: "Начальник отдела",
-  deputy: "Зам. начальника",
+  deputy: "Зам. начальника филиала",
   mechanic: "Механик",
   master: "Мастер",
 };
 
 export const DEMO_PERSONAS: DemoPersona[] = [
   {
-    staffId: "u-gup-dispatcher",
-    role: "gup_dispatcher",
+    staffId: "u-senior-dispatcher",
+    role: "senior_dispatcher",
     workspace: "dispatcher",
-    label: "Сергей · дисп. ГУП",
+    label: "Сергей · старший дисп.",
     name: "Сергей Осетинский",
     initials: "СО",
+    branchId: null,
+  },
+  {
+    staffId: "u-transport-chief",
+    role: "transport_chief",
+    workspace: "dispatcher",
+    label: "Алан · нач. ТУ",
+    name: "Алан Бероев",
+    initials: "АБ",
+    branchId: null,
+  },
+  {
+    staffId: "u-transport-deputy",
+    role: "transport_deputy",
+    workspace: "dispatcher",
+    label: "Зарина · зам. ТУ",
+    name: "Зарина Кадзаева",
+    initials: "ЗК",
     branchId: null,
   },
   {
@@ -80,7 +116,7 @@ export const DEMO_PERSONAS: DemoPersona[] = [
     staffId: "u-deputy",
     role: "deputy",
     workspace: "applicant",
-    label: "Ольга · зам",
+    label: "Ольга · зам филиала",
     name: "Ольга Сидорова",
     initials: "ОС",
     branchId: "b-vlad",

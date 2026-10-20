@@ -16,12 +16,17 @@ import { PrintWaybillDialog, usePrintWaybill } from "@/features/print-waybill";
 import { RoleSwitcher, useRole } from "@/features/switch-role";
 import {
   DISPATCHER_NAV,
+  FLEET_TABS,
+  FLEET_TAB_COPY,
   GUP_DISPATCHER_NAV,
   PAGE_COPY,
   ROLE_LABEL,
+  TRANSPORT_UNIT_SHORT,
+  isTransportUnitRole,
+  type FleetTab,
   type WorkspaceSection,
 } from "@/shared/config";
-import { ui } from "@/shared/ui";
+import { Tabs, ui } from "@/shared/ui";
 import { DispatchBoard } from "@/widgets/dispatch-board";
 import { EventsSheet } from "@/widgets/events-sheet";
 import { FleetPanel } from "@/widgets/fleet-panel";
@@ -40,7 +45,7 @@ import styles from "@/shared/styles/layout.module.css";
 export function GaragePage() {
   const { snapshot, error } = useGarage();
   const { persona } = useRole();
-  const isGup = persona.role === "gup_dispatcher";
+  const isTu = isTransportUnitRole(persona.role);
   const assign = useAssignRequest();
   const create = useCreateRequest();
   const addVehicle = useAddVehicle();
@@ -49,22 +54,34 @@ export function GaragePage() {
   const print = usePrintWaybill();
   const waybillForm = useIssueWaybill();
 
-  const [section, setSection] = useState<WorkspaceSection>(isGup ? "branches" : "dispatch");
+  const [section, setSection] = useState<WorkspaceSection>("dispatch");
   const [menuOpen, setMenuOpen] = useState(false);
   const [selected, setSelected] = useState<string | null>(null);
   const [noticeOpen, setNoticeOpen] = useState(false);
   const [allSchedule, setAllSchedule] = useState(false);
   const [scheduleMode, setScheduleMode] = useState("timeline");
   const [fleetFilter, setFleetFilter] = useState<"all" | Status>("all");
+  const [fleetTab, setFleetTab] = useState<FleetTab>("units");
   const [query, setQuery] = useState("");
   const [requestFilter, setRequestFilter] = useState<"pending" | "assigned" | "all">("pending");
   const [readCount, setReadCount] = useState(0);
 
-  const nav = isGup ? GUP_DISPATCHER_NAV : DISPATCHER_NAV;
-  const activeSection = !isGup && section === "branches" ? "dispatch" : section;
+  const nav = isTu ? GUP_DISPATCHER_NAV : DISPATCHER_NAV;
+  const activeSection =
+    section === "waybills" || section === "timesheet" || section === "fuel"
+      ? "fleet"
+      : !isTu && section === "branches"
+        ? "dispatch"
+        : section;
 
   function navigate(next: WorkspaceSection) {
-    setSection(next);
+    if (next === "waybills" || next === "timesheet" || next === "fuel") {
+      setSection("fleet");
+      setFleetTab(next);
+    } else {
+      setSection(next);
+      if (next === "fleet") setFleetTab("units");
+    }
     setQuery("");
     setFleetFilter("all");
     setMenuOpen(false);
@@ -101,8 +118,10 @@ export function GaragePage() {
   const serviceCount = countByStatus(view.fleet).service;
   const activeVehicle = view.fleet.find((vehicle) => vehicle.id === selected) ?? null;
   const sectionLabel = nav.find((item) => item.id === activeSection)?.label ?? "Диспетчерская";
-  const scopeLabel = isGup
-    ? `${view.branch.legalName.toUpperCase()} / ${ROLE_LABEL.gup_dispatcher.toUpperCase()}`
+  const pageCopy =
+    activeSection === "fleet" ? FLEET_TAB_COPY[fleetTab] : PAGE_COPY[activeSection];
+  const scopeLabel = isTu
+    ? `${TRANSPORT_UNIT_SHORT} / ${ROLE_LABEL[persona.role].toUpperCase()}`
     : `${view.branch.name.toUpperCase()} / СМЕНА 08:00–20:00`;
 
   return (
@@ -116,7 +135,7 @@ export function GaragePage() {
         service={serviceCount}
         dispatchers={view.dispatchers}
         persona={persona}
-        branchName={isGup ? view.branch.legalName : view.branch.name}
+        branchName={isTu ? TRANSPORT_UNIT_SHORT : view.branch.name}
         open={menuOpen}
       />
       <div className={styles.shell}>
@@ -140,21 +159,21 @@ export function GaragePage() {
                 {sectionLabel}
                 <span className={styles.headingDot}>.</span>
               </h1>
-              <p>{PAGE_COPY[activeSection]}</p>
+              <p>{pageCopy}</p>
             </div>
             <div className={styles.pageActions}>
               <ExportGarageButton />
-              {activeSection === "waybills" ? (
+              {activeSection === "fleet" && fleetTab === "waybills" ? (
                 <button type="button" className={ui.primaryButton} onClick={waybillForm.startCreate}>
                   <Plus size={19} />
                   Выдать путевой
                 </button>
-              ) : activeSection === "fleet" ? (
+              ) : activeSection === "fleet" && fleetTab === "units" ? (
                 <button type="button" className={ui.primaryButton} onClick={addVehicle.start}>
                   <Plus size={19} />
                   Добавить технику
                 </button>
-              ) : activeSection !== "branches" ? (
+              ) : activeSection !== "branches" && activeSection !== "fleet" ? (
                 <button type="button" className={ui.primaryButton} onClick={create.start}>
                   <Plus size={19} />
                   Новая заявка
@@ -169,6 +188,7 @@ export function GaragePage() {
               onOpenRequest={(request) =>
                 request.assigned ? setSelected(request.assigned) : startAssign(request)
               }
+              onSelectVehicle={setSelected}
             />
           )}
           {activeSection === "dispatch" && (
@@ -193,14 +213,38 @@ export function GaragePage() {
             />
           )}
           {activeSection === "fleet" && (
-            <FleetPanel
-              fleet={view.fleet}
-              filter={fleetFilter}
-              query={query}
-              onFilter={setFleetFilter}
-              onQuery={setQuery}
-              onSelect={setSelected}
-            />
+            <>
+              <div className={styles.fleetTabs}>
+                <Tabs
+                  value={fleetTab}
+                  onChange={(value) => setFleetTab(value as FleetTab)}
+                  tabs={FLEET_TABS.map((tab) => ({ value: tab.id, label: tab.label }))}
+                />
+              </div>
+              {fleetTab === "units" && (
+                <FleetPanel
+                  fleet={view.fleet}
+                  jobs={view.jobs}
+                  requests={view.requests}
+                  filter={fleetFilter}
+                  query={query}
+                  onFilter={setFleetFilter}
+                  onQuery={setQuery}
+                  onSelect={setSelected}
+                />
+              )}
+              {fleetTab === "waybills" && (
+                <WaybillsBoard
+                  waybills={view.waybills}
+                  onPrint={print.printWaybill}
+                  onEdit={waybillForm.startEdit}
+                />
+              )}
+              {fleetTab === "timesheet" && (
+                <TimesheetBoard entries={view.timesheet} drivers={view.drivers} />
+              )}
+              {fleetTab === "fuel" && <FuelBoard fuelings={view.fuelings} fleet={view.fleet} />}
+            </>
           )}
           {activeSection === "requests" && (
             <RequestsBoard
@@ -210,17 +254,6 @@ export function GaragePage() {
               onOpen={(request) => (request.assigned ? setSelected(request.assigned) : startAssign(request))}
             />
           )}
-          {activeSection === "waybills" && (
-            <WaybillsBoard
-              waybills={view.waybills}
-              onPrint={print.printWaybill}
-              onEdit={waybillForm.startEdit}
-            />
-          )}
-          {activeSection === "timesheet" && (
-            <TimesheetBoard entries={view.timesheet} drivers={view.drivers} />
-          )}
-          {activeSection === "fuel" && <FuelBoard fuelings={view.fuelings} fleet={view.fleet} />}
           {activeSection === "team" && (
             <TeamBoard dispatchers={view.dispatchers} fleet={view.fleet} onSelect={setSelected} />
           )}
@@ -243,17 +276,20 @@ export function GaragePage() {
         onFinishService={finish.complete}
         onChangeDriver={drivers.changeDriver}
       />
-      <AssignRequestDialog
-        request={assign.request}
-        fleet={view.fleet}
-        vehicleId={assign.vehicleId}
-        onVehicleId={assign.setVehicleId}
-        onClose={assign.close}
-        onConfirm={async () => {
-          const ok = await assign.confirm();
-          if (ok) setAllSchedule(true);
-        }}
-      />
+      {assign.request && (
+        <AssignRequestDialog
+          key={assign.request.id}
+          request={assign.request}
+          fleet={view.fleet}
+          vehicleId={assign.vehicleId}
+          onVehicleId={assign.setVehicleId}
+          onClose={assign.close}
+          onConfirm={async () => {
+            const ok = await assign.confirm();
+            if (ok) setAllSchedule(true);
+          }}
+        />
+      )}
       <CreateRequestDialog
         open={create.open}
         categories={create.categories}
@@ -261,9 +297,12 @@ export function GaragePage() {
         priority={create.priority}
         branches={create.branches}
         branchId={create.branchId}
+        fleet={create.fleet}
+        preferredVehicleId={create.preferredVehicleId}
         onBranchId={create.setBranchId}
         onCategory={create.setCategory}
         onPriority={create.setPriority}
+        onPreferredVehicleId={create.setPreferredVehicleId}
         onClose={create.close}
         onSubmit={create.submit}
       />

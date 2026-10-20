@@ -71,7 +71,7 @@ describe('garage Excel export', () => {
 
   it('writes user-controlled request text as strings, not formulas', async () => {
     const service = new GarageService();
-    service.createRequest({
+    const snapshot = service.createRequest({
       title: '=1+2',
       location: '+HYPERLINK("http://evil")',
       category: 'Экскаватор-погрузчик',
@@ -79,10 +79,11 @@ describe('garage Excel export', () => {
       end: '17:00',
       urgent: false,
     });
+    const createdId = snapshot.requests[0]?.id;
 
-    const workbook = await loadWorkbook(await buildGarageExcel(service.getSnapshot()));
+    const workbook = await loadWorkbook(await buildGarageExcel(snapshot));
     const sheet = workbook.getWorksheet('Заявки')!;
-    const row = sheet.getSheetValues().find((item) => Array.isArray(item) && item[1] === 1051) as
+    const row = sheet.getSheetValues().find((item) => Array.isArray(item) && item[1] === createdId) as
       | Array<string | number | undefined>
       | undefined;
 

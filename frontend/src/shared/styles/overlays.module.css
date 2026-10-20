@@ -1,5 +1,4 @@
-.sheet,
-.dialog {
+.sheet {
   position: fixed;
   z-index: 50;
 }
@@ -156,13 +155,13 @@
 .dialogLayer {
   position: relative;
   z-index: 61;
-  max-width: 100%;
+  width: min(100%, 720px);
   max-height: 100%;
 }
 
 .dialog {
   position: relative;
-  width: min(100%, 520px);
+  width: 100%;
   background: white;
   border: 1px solid #d4e2c2;
   border-radius: 16px;

@@ -3,6 +3,7 @@
 import { useState, type FormEvent } from "react";
 import { filterSnapshotByBranch, useGarage } from "@/entities/garage";
 import { vehicleCategories } from "@/entities/vehicle";
+import { isTransportUnitRole } from "@/shared/config";
 import { useRole } from "@/shared/model/role-store";
 import { useToast } from "@/shared/ui";
 import { createRequest } from "../api/create-request";
@@ -12,16 +13,17 @@ export function useCreateRequest() {
   const { persona } = useRole();
   const { showToast } = useToast();
   const [open, setOpen] = useState(false);
-  const isGup = persona.role === "gup_dispatcher";
+  const isTu = isTransportUnitRole(persona.role);
   const branches = snapshot?.branches ?? [];
   const [branchId, setBranchId] = useState(persona.branchId ?? branches[0]?.id ?? "");
   const scopedFleet =
     snapshot && (persona.branchId || branchId)
       ? filterSnapshotByBranch(snapshot, persona.branchId ?? branchId).fleet
-      : snapshot?.fleet;
-  const categories = scopedFleet ? vehicleCategories(scopedFleet) : [];
+      : snapshot?.fleet ?? [];
+  const categories = vehicleCategories(scopedFleet);
   const [category, setCategory] = useState(categories[0] ?? "");
   const [priority, setPriority] = useState("normal");
+  const [preferredVehicleId, setPreferredVehicleId] = useState("");
 
   function start() {
     const nextBranch = persona.branchId ?? branches[0]?.id ?? "";
@@ -29,9 +31,11 @@ export function useCreateRequest() {
     const fleetForStart =
       snapshot && nextBranch
         ? filterSnapshotByBranch(snapshot, nextBranch).fleet
-        : snapshot?.fleet;
-    setCategory(fleetForStart ? vehicleCategories(fleetForStart)[0] ?? "" : "");
+        : snapshot?.fleet ?? [];
+    const nextCategories = vehicleCategories(fleetForStart);
+    setCategory(nextCategories[0] ?? "");
     setPriority("normal");
+    setPreferredVehicleId("");
     setOpen(true);
   }
 
@@ -44,6 +48,12 @@ export function useCreateRequest() {
     if (!snapshot) return;
     const nextCategories = vehicleCategories(filterSnapshotByBranch(snapshot, next).fleet);
     setCategory(nextCategories[0] ?? "");
+    setPreferredVehicleId("");
+  }
+
+  function selectCategory(next: string) {
+    setCategory(next);
+    setPreferredVehicleId("");
   }
 
   async function submit(event: FormEvent<HTMLFormElement>) {
@@ -58,7 +68,8 @@ export function useCreateRequest() {
         end: String(form.get("end")),
         urgent: priority === "urgent",
         creatorId: persona.staffId,
-        ...(isGup ? { branchId } : {}),
+        ...(isTu ? { branchId } : {}),
+        ...(preferredVehicleId ? { preferredVehicleId } : {}),
       });
       setSnapshot(next);
       close();
@@ -72,10 +83,13 @@ export function useCreateRequest() {
     open,
     categories,
     category,
-    setCategory,
+    setCategory: selectCategory,
     priority,
     setPriority,
-    branches: isGup ? branches : undefined,
+    fleet: scopedFleet,
+    preferredVehicleId,
+    setPreferredVehicleId,
+    branches: isTu ? branches : undefined,
     branchId,
     setBranchId: selectBranch,
     start,

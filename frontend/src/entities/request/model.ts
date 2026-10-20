@@ -8,6 +8,8 @@ export type RequestItem = {
   urgent: boolean;
   branchId: string;
   creatorId: string;
+  preferredVehicleId?: string;
+  preferredPlate?: string;
   assigned?: string;
 };
 

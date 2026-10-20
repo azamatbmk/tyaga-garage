@@ -38,6 +38,9 @@ export function RequestCard({
         {request.location}
       </p>
       {meta && <p className={styles.requestMeta}>{meta}</p>}
+      {request.preferredPlate && !request.assigned && (
+        <p className={styles.requestMeta}>Госномер: {request.preferredPlate}</p>
+      )}
       {request.urgent && (
         <p className={styles.priorityWindow}>
           <Clock3 size={12} />

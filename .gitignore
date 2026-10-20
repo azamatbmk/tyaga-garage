@@ -19,6 +19,7 @@ node_modules/
 /out/
 frontend/.next/
 backend/dist/
+backend/data/
 
 # misc
 .DS_Store

@@ -1,10 +1,14 @@
 import { Search } from "lucide-react";
-import { FleetTable, type Status, type Vehicle } from "@/entities/vehicle";
+import type { Job } from "@/entities/garage";
+import type { RequestItem } from "@/entities/request";
+import { buildVehicleAssignments, FleetTable, type Status, type Vehicle } from "@/entities/vehicle";
 import { Tabs, ui } from "@/shared/ui";
 import styles from "@/shared/styles/panels.module.css";
 
 export function FleetPanel({
   fleet,
+  jobs = [],
+  requests = [],
   filter,
   query,
   onFilter,
@@ -12,6 +16,8 @@ export function FleetPanel({
   onSelect,
 }: {
   fleet: Vehicle[];
+  jobs?: Job[];
+  requests?: RequestItem[];
   filter: "all" | Status;
   query: string;
   onFilter: (value: "all" | Status) => void;
@@ -31,6 +37,11 @@ export function FleetPanel({
       `${vehicle.name} ${vehicle.driver} ${vehicle.plate} ${vehicle.category}`
         .toLowerCase()
         .includes(query.toLowerCase()),
+  );
+  const assignments = buildVehicleAssignments(
+    filtered.map((item) => item.id),
+    jobs,
+    requests,
   );
 
   return (
@@ -52,13 +63,13 @@ export function FleetPanel({
           <input
             value={query}
             onChange={(event) => onQuery(event.target.value)}
-            placeholder="Техника, номер, водитель"
+            placeholder="Техника, номер, водитель, объект"
             aria-label="Поиск по парку"
           />
         </label>
       </div>
       {filtered.length ? (
-        <FleetTable vehicles={filtered} onSelect={onSelect} />
+        <FleetTable vehicles={filtered} assignments={assignments} onSelect={onSelect} />
       ) : (
         <div className={ui.empty}>
           <Search size={32} />

@@ -1,6 +1,7 @@
 import { type FormEvent } from "react";
 import { Plus, X } from "lucide-react";
 import type { Branch } from "@/entities/garage";
+import { STATUS, type Vehicle } from "@/entities/vehicle";
 import { Modal, SelectField, ui } from "@/shared/ui";
 import styles from "@/shared/styles/overlays.module.css";
 
@@ -11,9 +12,12 @@ export function CreateRequestDialog({
   priority,
   branches,
   branchId,
+  fleet,
+  preferredVehicleId,
   onBranchId,
   onCategory,
   onPriority,
+  onPreferredVehicleId,
   onClose,
   onSubmit,
 }: {
@@ -23,12 +27,22 @@ export function CreateRequestDialog({
   priority: string;
   branches?: Branch[];
   branchId?: string;
+  fleet: Vehicle[];
+  preferredVehicleId: string;
   onBranchId?: (value: string) => void;
   onCategory: (value: string) => void;
   onPriority: (value: string) => void;
+  onPreferredVehicleId: (value: string) => void;
   onClose: () => void;
   onSubmit: (event: FormEvent<HTMLFormElement>) => void;
 }) {
+  const plateOptions = fleet
+    .filter((item) => item.category === category && item.status === "ready")
+    .map((item) => ({
+      value: item.id,
+      label: `${item.plate} · ${item.name} · ${STATUS[item.status].short}`,
+    }));
+
   return (
     <Modal open={open} onClose={onClose}>
       <div className={styles.dialog} role="dialog" aria-labelledby="create-title">
@@ -64,6 +78,15 @@ export function CreateRequestDialog({
             value={category}
             onChange={onCategory}
             options={categories.map((item) => ({ value: item, label: item }))}
+          />
+          <SelectField
+            label="Машина по госномеру"
+            value={preferredVehicleId}
+            onChange={onPreferredVehicleId}
+            options={[
+              { value: "", label: "Любая свободная этого типа" },
+              ...plateOptions,
+            ]}
           />
           <div className={styles.formRow}>
             <label className={ui.formField}>

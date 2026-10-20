@@ -353,7 +353,7 @@
 .workspace {
   max-width: 1770px;
   width: 100%;
-  margin: auto;
+  margin: 0 auto;
   padding: 33px 32px 0;
 }
 
@@ -407,6 +407,10 @@
   color: #727a6b;
   margin-top: 10px;
   line-height: 1.6;
+}
+
+.fleetTabs {
+  margin-bottom: 16px;
 }
 
 .footer {

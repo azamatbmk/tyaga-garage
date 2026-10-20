@@ -1,13 +1,11 @@
 import {
   ArrowUpRight,
+  Building2,
   ChevronRight,
   ClipboardList,
   Construction,
-  FileText,
-  Fuel,
   LayoutDashboard,
   Radio,
-  Table2,
   Truck,
   Users,
   Wrench,
@@ -21,11 +19,9 @@ import styles from "@/shared/styles/layout.module.css";
 
 const ICONS: Partial<Record<WorkspaceSection, typeof LayoutDashboard>> = {
   dispatch: LayoutDashboard,
-  fleet: Truck,
   requests: ClipboardList,
-  waybills: FileText,
-  timesheet: Table2,
-  fuel: Fuel,
+  branches: Building2,
+  fleet: Truck,
   team: Users,
   service: Wrench,
   "my-requests": ClipboardList,

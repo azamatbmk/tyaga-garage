@@ -1,28 +1,36 @@
 "use client";
 
 import { useState } from "react";
-import { Building2, ClipboardList, Truck } from "lucide-react";
+import { Building2, ClipboardList, MapPin, Truck } from "lucide-react";
 import type { Branch, GarageSnapshot } from "@/entities/garage";
 import { RequestCard, type RequestItem } from "@/entities/request";
-import { StatusBadge, countByStatus } from "@/entities/vehicle";
+import { buildVehicleAssignments, StatusBadge, countByStatus } from "@/entities/vehicle";
 import { ui } from "@/shared/ui";
 import panelStyles from "@/shared/styles/panels.module.css";
 
 function branchStats(snapshot: GarageSnapshot, branch: Branch) {
   const fleet = snapshot.fleet.filter((item) => item.branchId === branch.id);
   const requests = snapshot.requests.filter((item) => item.branchId === branch.id);
+  const jobs = snapshot.jobs.filter((job) => fleet.some((vehicle) => vehicle.id === job.vehicle));
   const pending = requests.filter((item) => !item.assigned).length;
   const assigned = requests.filter((item) => item.assigned).length;
   const status = countByStatus(fleet);
-  return { fleet, requests, pending, assigned, status };
+  const assignments = buildVehicleAssignments(
+    fleet.map((item) => item.id),
+    jobs,
+    requests,
+  );
+  return { fleet, requests, jobs, pending, assigned, status, assignments };
 }
 
 export function GupBranchesBoard({
   snapshot,
   onOpenRequest,
+  onSelectVehicle,
 }: {
   snapshot: GarageSnapshot;
   onOpenRequest: (request: RequestItem) => void;
+  onSelectVehicle?: (id: string) => void;
 }) {
   const [selectedBranchId, setSelectedBranchId] = useState<string | null>(null);
   const selectedBranch =
@@ -85,6 +93,69 @@ export function GupBranchesBoard({
           </div>
 
           <h3 className={panelStyles.gupSectionTitle}>
+            <Truck size={16} /> Техника и назначения
+          </h3>
+          {selected.fleet.length ? (
+            <div className={panelStyles.simpleTableWrap}>
+              <table className={panelStyles.simpleTable}>
+                <thead>
+                  <tr>
+                    <th>Техника</th>
+                    <th>Водитель</th>
+                    <th>Статус</th>
+                    <th>Куда назначена</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {selected.fleet.map((vehicle) => {
+                    const assignment = selected.assignments[vehicle.id];
+                    return (
+                      <tr key={vehicle.id}>
+                        <td>
+                          {onSelectVehicle ? (
+                            <button
+                              type="button"
+                              className={panelStyles.fleetName}
+                              onClick={() => onSelectVehicle(vehicle.id)}
+                            >
+                              <strong>{vehicle.name}</strong>
+                              <div className={ui.muted}>{vehicle.plate}</div>
+                            </button>
+                          ) : (
+                            <>
+                              <strong>{vehicle.name}</strong>
+                              <div className={ui.muted}>{vehicle.plate}</div>
+                            </>
+                          )}
+                        </td>
+                        <td>{vehicle.driver}</td>
+                        <td>
+                          <StatusBadge status={vehicle.status} />
+                        </td>
+                        <td>
+                          {assignment ? (
+                            <span>
+                              <strong>{assignment.title}</strong>
+                              <div className={ui.muted}>
+                                <MapPin size={12} style={{ display: "inline", verticalAlign: "middle" }} />{" "}
+                                {assignment.location}
+                              </div>
+                            </span>
+                          ) : (
+                            <span className={ui.muted}>Не назначена</span>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <p className={ui.muted}>Техники нет.</p>
+          )}
+
+          <h3 className={panelStyles.gupSectionTitle}>
             <ClipboardList size={16} /> Заявки филиала
           </h3>
           {selected.requests.length ? (
@@ -99,39 +170,6 @@ export function GupBranchesBoard({
             </div>
           ) : (
             <p className={ui.muted}>Заявок нет.</p>
-          )}
-
-          <h3 className={panelStyles.gupSectionTitle}>
-            <Truck size={16} /> Парк филиала
-          </h3>
-          {selected.fleet.length ? (
-            <div className={panelStyles.simpleTableWrap}>
-              <table className={panelStyles.simpleTable}>
-                <thead>
-                  <tr>
-                    <th>Техника</th>
-                    <th>Водитель</th>
-                    <th>Статус</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {selected.fleet.map((vehicle) => (
-                    <tr key={vehicle.id}>
-                      <td>
-                        <strong>{vehicle.name}</strong>
-                        <div className={ui.muted}>{vehicle.plate}</div>
-                      </td>
-                      <td>{vehicle.driver}</td>
-                      <td>
-                        <StatusBadge status={vehicle.status} />
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          ) : (
-            <p className={ui.muted}>Техники нет.</p>
           )}
         </section>
       )}
