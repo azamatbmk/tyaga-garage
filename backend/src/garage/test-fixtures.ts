@@ -110,7 +110,7 @@ export const TEST_WAYBILLS: Waybill[] = [
     branchId: 'b-vlad',
     validFrom: '2026-09-08',
     validTo: '2026-09-14',
-    issuerName: 'ГУП «ТЯГА»',
+    issuerName: 'ГУП РПВВ',
     issuerAddress: 'Владикавказ',
     issuerPhone: '+7',
     issuerOgrn: '1',

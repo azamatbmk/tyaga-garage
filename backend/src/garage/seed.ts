@@ -13,7 +13,7 @@ import type {
 } from './garage.types.js';
 import { GUP_SCOPE_ID } from './garage.types.js';
 
-const GUP_LEGAL = 'ГУП «ТЯГА»';
+const GUP_LEGAL = 'ГУП РПВВ';
 const GUP_OGRN = '1021500532109';
 
 function branch(
