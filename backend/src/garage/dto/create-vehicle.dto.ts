@@ -4,6 +4,7 @@ import {
   IsInt,
   IsOptional,
   IsString,
+  Matches,
   Max,
   MaxLength,
   Min,
@@ -61,4 +62,18 @@ export class CreateVehicleDto {
   @Min(0)
   @Max(999_999)
   hours?: number;
+
+  @IsString()
+  @Matches(/^\d{4}-\d{2}-\d{2}$/)
+  inspectionExpiresAt: string;
+
+  @IsOptional()
+  @IsString()
+  @Matches(/^\d{4}-\d{2}-\d{2}$/)
+  licenseExpiresAt?: string;
+
+  @IsOptional()
+  @IsString()
+  @Matches(/^\d{4}-\d{2}-\d{2}$/)
+  medicalExamExpiresAt?: string;
 }

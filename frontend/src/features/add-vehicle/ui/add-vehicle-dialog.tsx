@@ -165,6 +165,15 @@ export function AddVehicleDialog({
             />
           )}
           <label className={ui.formField}>
+            Техосмотр до
+            <input
+              required
+              type="date"
+              value={values.inspectionExpiresAt}
+              onChange={(event) => onChange({ inspectionExpiresAt: event.target.value })}
+            />
+          </label>
+          <label className={ui.formField}>
             Или ФИО нового водителя
             <input
               maxLength={80}
@@ -174,6 +183,30 @@ export function AddVehicleDialog({
               placeholder="Если оставить пустым — «Не назначен»"
             />
           </label>
+          {!values.driverId && (
+            <div className={styles.formRow}>
+              <label className={ui.formField}>
+                Права до
+                <input
+                  type="date"
+                  value={values.licenseExpiresAt}
+                  required={values.driverName.trim().length > 0}
+                  disabled={!values.driverName.trim()}
+                  onChange={(event) => onChange({ licenseExpiresAt: event.target.value })}
+                />
+              </label>
+              <label className={ui.formField}>
+                Медосмотр до
+                <input
+                  type="date"
+                  value={values.medicalExamExpiresAt}
+                  required={values.driverName.trim().length > 0}
+                  disabled={!values.driverName.trim()}
+                  onChange={(event) => onChange({ medicalExamExpiresAt: event.target.value })}
+                />
+              </label>
+            </div>
+          )}
           <button className={`${ui.primaryButton} ${ui.wide}`} type="submit" disabled={scanning}>
             <Plus size={18} />
             Сохранить в парк

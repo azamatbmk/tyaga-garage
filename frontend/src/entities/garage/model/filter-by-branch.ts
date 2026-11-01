@@ -17,10 +17,12 @@ export function filterSnapshotByBranch(
   const timesheet = snapshot.timesheet.filter((item) => driverIds.has(item.driverId));
   const drivers = snapshot.drivers.filter((item) => driverIds.has(item.id));
   const staff = snapshot.staff.filter((item) => item.branchId === branchId);
+  const events = snapshot.events.filter((item) => item.branchId === branchId);
 
   return {
     ...snapshot,
     branch,
+    branches: [branch],
     fleet,
     drivers,
     requests,
@@ -29,5 +31,6 @@ export function filterSnapshotByBranch(
     fuelings,
     timesheet,
     staff,
+    events,
   };
 }

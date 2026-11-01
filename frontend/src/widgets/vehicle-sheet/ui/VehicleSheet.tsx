@@ -8,7 +8,12 @@ import {
   Timer,
   X,
 } from "lucide-react";
-import type { Driver, Job } from "@/entities/garage";
+import {
+  documentStatus,
+  formatDocumentDate,
+  type Driver,
+  type Job,
+} from "@/entities/garage";
 import type { RequestItem } from "@/entities/request";
 import { StatusBadge, VehicleIcon, type Vehicle } from "@/entities/vehicle";
 import { formatTime } from "@/shared/lib";
@@ -21,6 +26,7 @@ export function VehicleSheet({
   jobs,
   pending,
   drivers,
+  today,
   onClose,
   onAssign,
   onFinishService,
@@ -30,12 +36,22 @@ export function VehicleSheet({
   jobs: Job[];
   pending: RequestItem[];
   drivers?: Driver[];
+  today?: string;
   onClose: () => void;
   onAssign: (request: RequestItem, preferred: string) => void;
   onFinishService: (vehicle: Vehicle) => void;
   onChangeDriver?: (vehicleId: string, driverId: string) => void;
 }) {
   const vehicleJobs = jobs.filter((job) => job.vehicle === vehicle?.id);
+  const driver = drivers?.find((item) => item.id === vehicle?.driverId);
+
+  function daysUntil(iso: string) {
+    if (!today) return 0;
+    const start = Date.parse(`${today}T00:00:00Z`);
+    const end = Date.parse(`${iso}T00:00:00Z`);
+    if (!Number.isFinite(start) || !Number.isFinite(end)) return 0;
+    return Math.round((end - start) / 86_400_000);
+  }
 
   return (
     <SidePanel open={!!vehicle} onClose={onClose}>
@@ -86,7 +102,7 @@ export function VehicleSheet({
               <Avatar initials={vehicle.initials} size="large" />
               <div>
                 <strong>{vehicle.driver}</strong>
-                <p>Машинист / водитель · 08:00–20:00</p>
+                <p>Машинист / водитель</p>
               </div>
               <ShieldCheck size={20} />
             </div>
@@ -103,7 +119,32 @@ export function VehicleSheet({
                 />
               </div>
             )}
-            <h3>Задачи на смену</h3>
+            <h3>Документы</h3>
+            {driver && (
+              <>
+                <p>
+                  Права до {formatDocumentDate(driver.licenseExpiresAt)}
+                  {today && daysUntil(driver.licenseExpiresAt) <= 30
+                    ? ` · ${documentStatus(daysUntil(driver.licenseExpiresAt))}`
+                    : ""}
+                </p>
+                <p>
+                  Медосмотр до {formatDocumentDate(driver.medicalExamExpiresAt)}
+                  {today && daysUntil(driver.medicalExamExpiresAt) <= 30
+                    ? ` · ${documentStatus(daysUntil(driver.medicalExamExpiresAt))}`
+                    : ""}
+                </p>
+              </>
+            )}
+            {vehicle.inspectionExpiresAt && (
+              <p>
+                Техосмотр до {formatDocumentDate(vehicle.inspectionExpiresAt)}
+                {today && daysUntil(vehicle.inspectionExpiresAt) <= 30
+                  ? ` · ${documentStatus(daysUntil(vehicle.inspectionExpiresAt))}`
+                  : ""}
+              </p>
+            )}
+            <h3>Задачи</h3>
             {vehicleJobs.map((job) => (
               <div className={styles.job} key={job.id}>
                 <header>

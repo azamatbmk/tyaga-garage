@@ -60,7 +60,7 @@ export function WaybillPrintDocument({ waybill }: { waybill: Waybill }) {
           ["Тип ТС", waybill.vehicleType],
           ["Марка / модель", waybill.vehicleBrandModel],
           ["Гос. регистрационный номер", waybill.vehiclePlate],
-          ["Предрейсовый / предсменный контроль ТС", formatDateTime(waybill.techControlAt)],
+          ["Предрейсовый контроль ТС", formatDateTime(waybill.techControlAt)],
           ["Результат контроля ТС", waybill.techControlResult],
           ["Контролёр", waybill.techControllerName],
           ["Выпуск на линию", formatDateTime(waybill.departureAt)],

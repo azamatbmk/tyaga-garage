@@ -11,6 +11,9 @@ export type CreateVehicleBody = {
   driverName?: string;
   fuel?: number;
   hours?: number;
+  inspectionExpiresAt: string;
+  licenseExpiresAt?: string;
+  medicalExamExpiresAt?: string;
 };
 
 export function createVehicle(body: CreateVehicleBody) {

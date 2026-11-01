@@ -4,7 +4,7 @@ import { useState, type FormEvent } from "react";
 import { filterSnapshotByBranch, useGarage } from "@/entities/garage";
 import { vehicleCategories } from "@/entities/vehicle";
 import { isTransportUnitRole } from "@/shared/config";
-import { useRole } from "@/shared/model/role-store";
+import { useRole } from "@/shared/model";
 import { useToast } from "@/shared/ui";
 import { createRequest } from "../api/create-request";
 
@@ -67,7 +67,6 @@ export function useCreateRequest() {
         start: String(form.get("start")),
         end: String(form.get("end")),
         urgent: priority === "urgent",
-        creatorId: persona.staffId,
         ...(isTu ? { branchId } : {}),
         ...(preferredVehicleId ? { preferredVehicleId } : {}),
       });

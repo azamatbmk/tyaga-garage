@@ -33,11 +33,6 @@ export class CreateRequestDto {
   @IsBoolean()
   urgent: boolean;
 
-  @IsOptional()
-  @IsString()
-  @MinLength(1)
-  creatorId?: string;
-
   /** Обязателен для диспетчера ГУП: в какой филиал класть заявку */
   @IsOptional()
   @IsString()

@@ -3,7 +3,7 @@
 import { useRef, useState } from "react";
 import { useGarage } from "@/entities/garage";
 import { REQUEST_CATEGORIES } from "@/entities/vehicle";
-import { useRole } from "@/shared/model/role-store";
+import { useRole } from "@/shared/model";
 import { useToast } from "@/shared/ui";
 import { createVehicle } from "../api/create-vehicle";
 import { scanPassportImage } from "./scan-passport";
@@ -18,6 +18,9 @@ function emptyValues(branchId: string): VehicleFormValues {
     capacity: "",
     driverId: "",
     driverName: "",
+    inspectionExpiresAt: "",
+    licenseExpiresAt: "",
+    medicalExamExpiresAt: "",
   };
 }
 
@@ -101,6 +104,14 @@ export function useAddVehicle() {
       showToast({ kind: "error", title: "Укажите марку/модель и госномер" });
       return;
     }
+    if (!next.inspectionExpiresAt) {
+      showToast({ kind: "error", title: "Укажите срок техосмотра" });
+      return;
+    }
+    if (next.driverName.trim() && !next.driverId && (!next.licenseExpiresAt || !next.medicalExamExpiresAt)) {
+      showToast({ kind: "error", title: "Укажите срок прав и медосмотра нового водителя" });
+      return;
+    }
     try {
       const snapshotNext = await createVehicle({
         name: next.name.trim(),
@@ -110,6 +121,9 @@ export function useAddVehicle() {
         capacity: next.capacity.trim() || undefined,
         driverId: next.driverId || undefined,
         driverName: next.driverName.trim() || undefined,
+        inspectionExpiresAt: next.inspectionExpiresAt,
+        licenseExpiresAt: next.licenseExpiresAt || undefined,
+        medicalExamExpiresAt: next.medicalExamExpiresAt || undefined,
       });
       setSnapshot(snapshotNext);
       close();

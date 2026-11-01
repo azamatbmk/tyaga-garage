@@ -55,6 +55,10 @@ export type Driver = {
   licenseSeries: string;
   licenseNumber: string;
   licenseIssuedAt: string;
+  /** Права действуют по эту дату включительно, YYYY-MM-DD */
+  licenseExpiresAt: string;
+  /** Медосмотр действует по эту дату включительно, YYYY-MM-DD */
+  medicalExamExpiresAt: string;
   snils: string;
 };
 
@@ -71,6 +75,8 @@ export type Vehicle = {
   fuel: number;
   hours: number;
   capacity: string;
+  /** Техосмотр действует по эту дату включительно, YYYY-MM-DD */
+  inspectionExpiresAt: string;
 };
 
 export type Job = {
@@ -117,7 +123,7 @@ export type Waybill = {
   vehicleType: string;
   vehicleBrandModel: string;
   vehiclePlate: string;
-  /** Предрейсовый / предсменный контроль ТС */
+  /** Предрейсовый контроль ТС */
   techControlAt: string;
   techControlResult: string;
   techControllerName: string;
@@ -167,6 +173,7 @@ export type GarageEvent = {
   title: string;
   detail: string;
   type: 'arrival' | 'request' | 'ready';
+  branchId?: string;
 };
 
 export type Dispatcher = {

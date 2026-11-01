@@ -1,6 +1,7 @@
 import {
   ArrowUpRight,
   Building2,
+  CalendarClock,
   ChevronRight,
   ClipboardList,
   Construction,
@@ -22,6 +23,7 @@ const ICONS: Partial<Record<WorkspaceSection, typeof LayoutDashboard>> = {
   requests: ClipboardList,
   branches: Building2,
   fleet: Truck,
+  documents: CalendarClock,
   team: Users,
   service: Wrench,
   "my-requests": ClipboardList,
@@ -33,23 +35,25 @@ export function Sidebar({
   nav,
   onNavigate,
   pending,
+  documents = 0,
   service,
   dispatchers,
   persona,
   branchName,
   open,
-  showShift = true,
+  showTeam = true,
 }: {
   view: WorkspaceSection;
   nav: { id: WorkspaceSection; label: string }[];
   onNavigate: (view: WorkspaceSection) => void;
   pending: number;
+  documents?: number;
   service: number;
   dispatchers: Dispatcher[];
   persona: DemoPersona;
   branchName: string;
   open: boolean;
-  showShift?: boolean;
+  showTeam?: boolean;
 }) {
   return (
     <aside className={cx(styles.sidebar, open && styles.sidebarOpen)}>
@@ -89,16 +93,19 @@ export function Sidebar({
               <Icon size={18} />
               <span>{item.label}</span>
               {item.id === "requests" && pending > 0 && <b className={styles.navCount}>{pending}</b>}
+              {item.id === "documents" && documents > 0 && (
+                <b className={styles.navCount}>{documents}</b>
+              )}
               {item.id === "service" && service > 0 && <span className={styles.navServiceDot} />}
             </button>
           );
         })}
       </nav>
 
-      {showShift && (
+      {showTeam && (
         <div className={styles.shift}>
           <div className={styles.shiftEyebrow}>
-            <Radio size={14} /> ДНЕВНАЯ СМЕНА
+            <Radio size={14} /> ДИСПЕТЧЕРЫ
           </div>
           <p>
             Люди, которые
@@ -113,14 +120,16 @@ export function Sidebar({
                 color={dispatcher.color as "violet" | "peach" | "mint"}
               />
             ))}
-            <span className={styles.onDuty}>
-              3 диспетчера
-              <br />
-              <b>на смене</b>
-            </span>
+            {dispatchers.length > 0 && (
+              <span className={styles.onDuty}>
+                В команде
+                <br />
+                <b>{dispatchers.length}</b>
+              </span>
+            )}
           </div>
           <button className={styles.shiftLink} onClick={() => onNavigate("team")}>
-            Состав смены <ArrowUpRight size={16} />
+            Состав команды <ArrowUpRight size={16} />
           </button>
         </div>
       )}

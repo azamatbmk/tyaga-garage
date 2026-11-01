@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Plus } from "lucide-react";
-import { filterSnapshotByBranch, useGarage } from "@/entities/garage";
+import { expiringDocuments, filterSnapshotByBranch, useGarage } from "@/entities/garage";
 import { pendingRequests } from "@/entities/request";
 import { countByStatus, type Status } from "@/entities/vehicle";
 import { AddVehicleDialog, useAddVehicle } from "@/features/add-vehicle";
@@ -13,7 +13,7 @@ import { ExportGarageButton } from "@/features/export-garage";
 import { useFinishService } from "@/features/finish-service";
 import { useIssueWaybill, WaybillFormDialog } from "@/features/issue-waybill";
 import { PrintWaybillDialog, usePrintWaybill } from "@/features/print-waybill";
-import { RoleSwitcher, useRole } from "@/features/switch-role";
+import { LogoutButton, useRole } from "@/features/switch-role";
 import {
   DISPATCHER_NAV,
   FLEET_TABS,
@@ -28,6 +28,7 @@ import {
 } from "@/shared/config";
 import { Tabs, ui } from "@/shared/ui";
 import { DispatchBoard } from "@/widgets/dispatch-board";
+import { DocumentsBoard } from "@/widgets/documents-board";
 import { EventsSheet } from "@/widgets/events-sheet";
 import { FleetPanel } from "@/widgets/fleet-panel";
 import { FuelBoard } from "@/widgets/fuel-board";
@@ -108,13 +109,14 @@ export function GaragePage() {
   }
 
   if (!snapshot) {
-    return <div className={styles.boot}>Загружаем смену…</div>;
+    return <div className={styles.boot}>Загружаем данные…</div>;
   }
 
   const view = persona.branchId
     ? filterSnapshotByBranch(snapshot, persona.branchId)
     : snapshot;
   const pending = pendingRequests(view.requests);
+  const documentAlerts = expiringDocuments(view);
   const serviceCount = countByStatus(view.fleet).service;
   const activeVehicle = view.fleet.find((vehicle) => vehicle.id === selected) ?? null;
   const sectionLabel = nav.find((item) => item.id === activeSection)?.label ?? "Диспетчерская";
@@ -122,7 +124,7 @@ export function GaragePage() {
     activeSection === "fleet" ? FLEET_TAB_COPY[fleetTab] : PAGE_COPY[activeSection];
   const scopeLabel = isTu
     ? `${TRANSPORT_UNIT_SHORT} / ${ROLE_LABEL[persona.role].toUpperCase()}`
-    : `${view.branch.name.toUpperCase()} / СМЕНА 08:00–20:00`;
+    : view.branch.name.toUpperCase();
 
   return (
     <div className={styles.root}>
@@ -132,6 +134,7 @@ export function GaragePage() {
         nav={nav}
         onNavigate={navigate}
         pending={pending.length}
+        documents={documentAlerts.length}
         service={serviceCount}
         dispatchers={view.dispatchers}
         persona={persona}
@@ -146,7 +149,8 @@ export function GaragePage() {
           onOpenMenu={() => setMenuOpen(true)}
           onOpenEvents={openEvents}
           onOpenTeam={() => navigate("team")}
-          roleSwitcher={<RoleSwitcher />}
+          date={snapshot.date}
+          roleSwitcher={<LogoutButton />}
         />
         <main className={styles.workspace}>
           <div className={styles.pageHeading}>
@@ -173,7 +177,9 @@ export function GaragePage() {
                   <Plus size={19} />
                   Добавить технику
                 </button>
-              ) : activeSection !== "branches" && activeSection !== "fleet" ? (
+              ) : activeSection !== "branches" &&
+                activeSection !== "fleet" &&
+                activeSection !== "documents" ? (
                 <button type="button" className={ui.primaryButton} onClick={create.start}>
                   <Plus size={19} />
                   Новая заявка
@@ -246,6 +252,13 @@ export function GaragePage() {
               {fleetTab === "fuel" && <FuelBoard fuelings={view.fuelings} fleet={view.fleet} />}
             </>
           )}
+          {activeSection === "documents" && (
+            <DocumentsBoard
+              alerts={documentAlerts}
+              showBranch={isTu}
+              onSelect={setSelected}
+            />
+          )}
           {activeSection === "requests" && (
             <RequestsBoard
               requests={view.requests}
@@ -260,7 +273,7 @@ export function GaragePage() {
           {activeSection === "service" && <ServiceBoard fleet={view.fleet} onSelect={setSelected} />}
 
           <footer className={styles.footer}>
-            <span>ТЯГА / Каждая смена в движении.</span>
+            <span>ТЯГА / Техника в движении.</span>
             <span>{persona.name}</span>
           </footer>
         </main>
@@ -271,6 +284,7 @@ export function GaragePage() {
         jobs={view.jobs}
         pending={pending}
         drivers={view.drivers}
+        today={snapshot.date}
         onClose={() => setSelected(null)}
         onAssign={startAssign}
         onFinishService={finish.complete}

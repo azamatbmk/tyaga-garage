@@ -1,2 +1,2 @@
-export { RoleSwitcher } from "./ui/role-switcher";
-export { RoleProvider, useRole } from "@/shared/model/role-store";
+export { LogoutButton } from "./ui/role-switcher";
+export { useRole, useSession } from "@/shared/model";

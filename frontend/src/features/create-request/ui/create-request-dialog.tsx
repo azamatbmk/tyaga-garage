@@ -55,7 +55,7 @@ export function CreateRequestDialog({
           </button>
         </div>
         <h2 id="create-title">Новая заявка</h2>
-        <p className={styles.description}>Дневная смена 08:00–20:00</p>
+        <p className={styles.description}>Укажите время работ</p>
         <form onSubmit={onSubmit} className={styles.form}>
           {branches && onBranchId && branchId != null && (
             <SelectField
@@ -91,11 +91,11 @@ export function CreateRequestDialog({
           <div className={styles.formRow}>
             <label className={ui.formField}>
               Начало
-              <input type="time" name="start" defaultValue="13:00" min="08:00" max="19:45" step={900} required />
+              <input type="time" name="start" defaultValue="13:00" step={900} required />
             </label>
             <label className={ui.formField}>
               Окончание
-              <input type="time" name="end" defaultValue="17:00" min="08:15" max="20:00" step={900} required />
+              <input type="time" name="end" defaultValue="17:00" step={900} required />
             </label>
           </div>
           <SelectField

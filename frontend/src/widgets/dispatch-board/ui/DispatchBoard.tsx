@@ -28,7 +28,8 @@ import { cx, formatTime, shortName } from "@/shared/lib";
 import { Tabs, ui } from "@/shared/ui";
 import styles from "./dispatch.module.css";
 
-const HOURS = [8, 10, 12, 14, 16, 18, 20];
+const DAY_HOURS = 24;
+const HOURS = [0, 4, 8, 12, 16, 20, 24];
 
 export function DispatchBoard({
   fleet,
@@ -127,7 +128,7 @@ export function DispatchBoard({
           </div>
           <div className={styles.metricBottom}>
             <span className={styles.indicator} />
-            По плану смены
+            По заявкам
           </div>
         </button>
         <button className={styles.metric} onClick={() => onOpenFleet("ready")}>
@@ -167,7 +168,7 @@ export function DispatchBoard({
               <div>
                 <div className={styles.eyebrow}>ПЛАН РАБОТ</div>
                 <h2>
-                  Движение смены <span className={styles.count}>{fleet.length}</span>
+                  План на сегодня <span className={styles.count}>{fleet.length}</span>
                 </h2>
               </div>
               <Tabs
@@ -184,7 +185,6 @@ export function DispatchBoard({
               <span className={styles.date}>
                 <CalendarDays size={15} />
                 <b>Сегодня</b>
-                <span>Смена</span>
               </span>
               <button
                 className={cx(styles.filter, allSchedule && styles.filterOn)}
@@ -198,7 +198,7 @@ export function DispatchBoard({
 
             {scheduleMode === "timeline" ? (
               <div className={styles.scheduleScroll}>
-                <div className={styles.schedule} role="region" aria-label="Расписание техники с 8 до 20 часов">
+                <div className={styles.schedule} role="region" aria-label="Расписание техники">
                   <div className={styles.scheduleHeader}>
                     <span>ТЕХНИКА / ЭКИПАЖ</span>
                     <div className={styles.hours}>
@@ -241,8 +241,8 @@ export function DispatchBoard({
                                 job.tone === "lime" && styles.jobLime,
                               )}
                               style={{
-                                left: `${((job.start - 8) / 12) * 100}%`,
-                                width: `${((job.end - job.start) / 12) * 100}%`,
+                                left: `${(job.start / DAY_HOURS) * 100}%`,
+                                width: `${((job.end - job.start) / DAY_HOURS) * 100}%`,
                               }}
                               onClick={() => onSelect(vehicle.id)}
                               aria-label={`${vehicle.name}: ${job.title}, ${formatTime(job.start)}–${formatTime(job.end)}`}
@@ -357,7 +357,6 @@ export function DispatchBoard({
                 <Gauge size={17} />
                 Загрузка парка
               </span>
-              <span className={styles.darkLabel}>СМЕНА 01</span>
             </div>
             <div className={styles.gauge}>
               <svg viewBox="0 0 280 160" role="img" aria-label={`Загрузка исправного парка ${load} процентов`}>

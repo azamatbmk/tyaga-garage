@@ -253,7 +253,7 @@
 
 .nowTag {
   position: absolute;
-  left: 22.9167%;
+  left: 44.7917%;
   transform: translateX(-50%);
   padding: 3px 5px;
   background: #809953;
@@ -333,7 +333,7 @@
   position: absolute;
   top: 0;
   bottom: 0;
-  left: 22.9167%;
+  left: 44.7917%;
   z-index: 2;
   border-left: 1px dashed #8ba162;
   pointer-events: none;

@@ -13,6 +13,7 @@ export type Vehicle = {
   fuel: number;
   hours: number;
   capacity: string;
+  inspectionExpiresAt: string;
 };
 
 export const STATUS: Record<Status, { label: string; short: string }> = {

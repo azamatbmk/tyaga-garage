@@ -6,4 +6,7 @@ export type VehicleFormValues = {
   capacity: string;
   driverId: string;
   driverName: string;
+  inspectionExpiresAt: string;
+  licenseExpiresAt: string;
+  medicalExamExpiresAt: string;
 };

@@ -8,7 +8,6 @@ export function createRequest(body: {
   start: string;
   end: string;
   urgent: boolean;
-  creatorId?: string;
   branchId?: string;
   preferredVehicleId?: string;
 }) {

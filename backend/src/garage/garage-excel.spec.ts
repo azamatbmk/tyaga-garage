@@ -6,7 +6,9 @@ import {
   garageExcelFilename,
   GARAGE_EXCEL_SHEETS,
 } from './garage-excel.js';
+import { actorFromStaff } from './actor.js';
 import { GarageService } from './garage.service.js';
+import { DEMO_STAFF } from './seed.js';
 import {
   TEST_DRIVERS,
   TEST_FLEET,
@@ -39,7 +41,7 @@ describe('garage Excel export', () => {
   });
 
   it('keeps the download name ASCII-safe', () => {
-    expect(garageExcelFilename({ date: '../evil' } as never)).toBe('tyaga-smena-smena.xlsx');
+    expect(garageExcelFilename({ date: '../evil' } as never)).toBe('tyaga-export.xlsx');
   });
 
   it('builds a workbook with operational sheets and live snapshot data', async () => {
@@ -49,12 +51,13 @@ describe('garage Excel export', () => {
       drivers: TEST_DRIVERS,
       requests: TEST_REQUESTS,
     });
-    service.assignRequest(1049, '05');
+    const tu = actorFromStaff(DEMO_STAFF.find((item) => item.id === 'u-senior-dispatcher')!);
+    service.assignRequest(1049, '05', tu);
     const snapshot = service.getSnapshot();
     const buffer = await buildGarageExcel(snapshot);
     const workbook = await loadWorkbook(buffer);
 
-    expect(garageExcelFilename(snapshot)).toBe('tyaga-smena-2026-09-12.xlsx');
+    expect(garageExcelFilename(snapshot)).toBe('tyaga-2026-09-12.xlsx');
     expect(workbook.worksheets.map((sheet) => sheet.name)).toEqual([
       ...GARAGE_EXCEL_SHEETS,
     ]);
@@ -71,6 +74,7 @@ describe('garage Excel export', () => {
 
   it('writes user-controlled request text as strings, not formulas', async () => {
     const service = new GarageService();
+    const dept = actorFromStaff(DEMO_STAFF.find((item) => item.id === 'u-dept')!);
     const snapshot = service.createRequest({
       title: '=1+2',
       location: '+HYPERLINK("http://evil")',
@@ -78,7 +82,7 @@ describe('garage Excel export', () => {
       start: '13:00',
       end: '17:00',
       urgent: false,
-    });
+    }, dept);
     const createdId = snapshot.requests[0]?.id;
 
     const workbook = await loadWorkbook(await buildGarageExcel(snapshot));

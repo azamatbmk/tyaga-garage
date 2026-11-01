@@ -17,6 +17,7 @@ export type GarageEvent = {
   title: string;
   detail: string;
   type: "arrival" | "request" | "ready";
+  branchId?: string;
 };
 
 export type Dispatcher = {
@@ -52,6 +53,8 @@ export type Driver = {
   licenseSeries: string;
   licenseNumber: string;
   licenseIssuedAt: string;
+  licenseExpiresAt: string;
+  medicalExamExpiresAt: string;
   snils: string;
 };
 

@@ -1,4 +1,5 @@
 import ExcelJS from 'exceljs';
+import { formatIsoDate } from './documents.js';
 import type { GarageSnapshot, Status } from './garage.types.js';
 
 const STATUS_LABEL: Record<Status, string> = {
@@ -43,8 +44,8 @@ export const GARAGE_EXCEL_SHEETS = [
 const FORMULA_PREFIX = /^[=+\-@\t\r]/;
 
 export function garageExcelFilename(snapshot: GarageSnapshot): string {
-  const date = /^\d{4}-\d{2}-\d{2}$/.test(snapshot.date) ? snapshot.date : 'smena';
-  return `tyaga-smena-${date}.xlsx`;
+  const date = /^\d{4}-\d{2}-\d{2}$/.test(snapshot.date) ? snapshot.date : 'export';
+  return `tyaga-${date}.xlsx`;
 }
 
 export function formatClock(hours: number): string {
@@ -120,9 +121,8 @@ export async function buildGarageExcel(snapshot: GarageSnapshot): Promise<Buffer
     ['Показатель', 'Значение'],
     [
       ['Гараж', 'Основной гараж'],
-      ['Дата смены', snapshot.date],
+      ['Дата', snapshot.date],
       ['Время среза', snapshot.snapshotTime],
-      ['Окно смены', '08:00–20:00'],
       ['Техники всего', snapshot.fleet.length],
       ['На объекте', fleetCounts.working],
       ['Готовы к выезду', fleetCounts.ready],
@@ -132,7 +132,7 @@ export async function buildGarageExcel(snapshot: GarageSnapshot): Promise<Buffer
       ['Ждут назначения', pending],
       ['Наряды', snapshot.jobs.length],
       ['Диспетчеры', snapshot.dispatchers.length],
-      ['События смены', snapshot.events.length],
+      ['События', snapshot.events.length],
     ],
   );
 
@@ -149,18 +149,27 @@ export async function buildGarageExcel(snapshot: GarageSnapshot): Promise<Buffer
       'Топливо, %',
       'Наработка, м/ч',
       'Характеристика',
+      'Права до',
+      'Медосмотр до',
+      'Техосмотр до',
     ],
-    snapshot.fleet.map((vehicle) => [
-      vehicle.id,
-      vehicle.name,
-      vehicle.category,
-      vehicle.plate,
-      STATUS_LABEL[vehicle.status] ?? vehicle.status,
-      vehicle.driver,
-      vehicle.fuel,
-      vehicle.hours,
-      vehicle.capacity,
-    ]),
+    snapshot.fleet.map((vehicle) => {
+      const driver = snapshot.drivers.find((item) => item.id === vehicle.driverId);
+      return [
+        vehicle.id,
+        vehicle.name,
+        vehicle.category,
+        vehicle.plate,
+        STATUS_LABEL[vehicle.status] ?? vehicle.status,
+        vehicle.driver,
+        vehicle.fuel,
+        vehicle.hours,
+        vehicle.capacity,
+        driver ? formatIsoDate(driver.licenseExpiresAt) : '—',
+        driver ? formatIsoDate(driver.medicalExamExpiresAt) : '—',
+        formatIsoDate(vehicle.inspectionExpiresAt),
+      ];
+    }),
   );
 
   addSheet(
@@ -229,15 +238,14 @@ export async function buildGarageExcel(snapshot: GarageSnapshot): Promise<Buffer
   addSheet(
     workbook,
     'Команда',
-    ['Тип', 'ФИО', 'Роль / техника', 'Госномер', 'Занятость', 'Смена'],
+    ['Тип', 'ФИО', 'Роль / техника', 'Госномер', 'Занятость'],
     [
       ...snapshot.dispatchers.map((dispatcher) => [
         'Диспетчер',
         dispatcher.name,
         dispatcher.role,
         '—',
-        'На смене',
-        dispatcher.time,
+        'На месте',
       ]),
       ...snapshot.fleet.map((vehicle) => [
         'Машинист',
@@ -245,7 +253,6 @@ export async function buildGarageExcel(snapshot: GarageSnapshot): Promise<Buffer
         `${vehicle.name} · ${vehicle.category}`,
         vehicle.plate,
         STATUS_LABEL[vehicle.status] ?? vehicle.status,
-        '08:00–20:00',
       ]),
     ],
   );

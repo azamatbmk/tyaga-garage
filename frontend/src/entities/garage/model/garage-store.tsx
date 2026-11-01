@@ -1,6 +1,7 @@
 "use client";
 
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
+import { useSession } from "@/shared/model";
 import { getGarage } from "../api/get-garage";
 import type { GarageSnapshot } from "./types";
 
@@ -13,14 +14,32 @@ type GarageContextValue = {
 const GarageContext = createContext<GarageContextValue | null>(null);
 
 export function GarageProvider({ children }: { children: React.ReactNode }) {
+  const { persona, ready } = useSession();
+  const staffId = persona?.staffId ?? null;
   const [snapshot, setSnapshot] = useState<GarageSnapshot | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [trackedStaffId, setTrackedStaffId] = useState<string | null>(staffId);
+
+  if (staffId !== trackedStaffId) {
+    setTrackedStaffId(staffId);
+    setSnapshot(null);
+    setError(null);
+  }
 
   useEffect(() => {
+    if (!ready || !staffId) return;
+    let cancelled = false;
     getGarage()
-      .then(setSnapshot)
-      .catch((err: Error) => setError(err.message));
-  }, []);
+      .then((next) => {
+        if (!cancelled) setSnapshot(next);
+      })
+      .catch((err: Error) => {
+        if (!cancelled) setError(err.message);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [ready, staffId]);
 
   const value = useMemo(
     () => ({ snapshot, error, setSnapshot }),

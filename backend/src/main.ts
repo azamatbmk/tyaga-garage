@@ -1,8 +1,10 @@
 import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
+import { loadEnv } from './load-env.js';
 import { AppModule } from './app.module.js';
 
 async function bootstrap() {
+  loadEnv();
   const app = await NestFactory.create(AppModule);
   app.setGlobalPrefix('api');
   app.enableCors({

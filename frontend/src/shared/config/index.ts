@@ -10,14 +10,10 @@ export {
   type WorkspaceSection,
 } from "./navigation";
 export {
-  DEFAULT_PERSONA,
-  DEMO_PERSONAS,
   ROLE_LABEL,
-  TRANSPORT_UNIT_LABEL,
-  TRANSPORT_UNIT_ROLES,
   TRANSPORT_UNIT_SHORT,
   isTransportUnitRole,
-  personaByStaffId,
+  workspaceForRole,
   type DemoPersona,
   type StaffRole,
   type WorkspaceKind,

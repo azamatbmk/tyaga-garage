@@ -2,6 +2,7 @@ export type WorkspaceSection =
   | "branches"
   | "dispatch"
   | "fleet"
+  | "documents"
   | "requests"
   | "team"
   | "service"
@@ -15,6 +16,7 @@ export const DISPATCHER_NAV: { id: WorkspaceSection; label: string }[] = [
   { id: "dispatch", label: "Диспетчерская" },
   { id: "requests", label: "Заявки" },
   { id: "fleet", label: "Парк техники" },
+  { id: "documents", label: "Сроки" },
   { id: "team", label: "Команда" },
   { id: "service", label: "Обслуживание" },
 ];
@@ -56,8 +58,9 @@ export const PAGE_COPY: Partial<Record<WorkspaceSection, string>> = {
   branches: "Контроль филиалов из ТУ РПВВ: очередь, парк и куда назначена техника.",
   dispatch: "Каждая машина на своём месте. Каждый выезд под контролем.",
   fleet: "Техника, путевые, табель и топливо — всё по парку.",
+  documents: "Права, медосмотр и техосмотр: просрочено и ближайшие 30 дней.",
   requests: "От новой задачи до назначенного экипажа.",
-  team: "Диспетчеры и экипажи сегодняшней смены.",
+  team: "Диспетчеры и экипажи.",
   service: "Плановые работы и возвращение техники в строй.",
   "my-requests": "Ваши заявки на технику. Статус и создание новых.",
   "branch-requests": "Все заявки филиала для контроля.",

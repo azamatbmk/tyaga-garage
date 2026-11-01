@@ -16,7 +16,7 @@ export function EventsSheet({
     <SidePanel open={open} onClose={onClose}>
       <header className={styles.header}>
         <div className={styles.kicker}>
-          <span className={styles.eyebrow}>12 СЕНТЯБРЯ / СМЕНА 01</span>
+          <span className={styles.eyebrow}>12 СЕНТЯБРЯ</span>
           <button className={ui.iconButton} aria-label="Закрыть события" onClick={onClose}>
             <X size={20} />
           </button>

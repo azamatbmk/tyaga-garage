@@ -5,7 +5,7 @@ import { Plus } from "lucide-react";
 import { filterSnapshotByBranch, useGarage } from "@/entities/garage";
 import { RequestCard, requestsByCreator } from "@/entities/request";
 import { CreateRequestDialog, useCreateRequest } from "@/features/create-request";
-import { RoleSwitcher, useRole } from "@/features/switch-role";
+import { LogoutButton, useRole } from "@/features/switch-role";
 import { APPLICANT_NAV, PAGE_COPY, ROLE_LABEL, type WorkspaceSection } from "@/shared/config";
 import { ui } from "@/shared/ui";
 import { Header } from "@/widgets/header";
@@ -30,7 +30,7 @@ export function ApplicantPage() {
   }
 
   if (!snapshot) {
-    return <div className={styles.boot}>Загружаем смену…</div>;
+    return <div className={styles.boot}>Загружаем данные…</div>;
   }
 
   const view = persona.branchId
@@ -51,7 +51,7 @@ export function ApplicantPage() {
         persona={persona}
         branchName={view.branch.name}
         open={menuOpen}
-        showShift={false}
+        showTeam={false}
       />
       <div className={styles.shell}>
         <Header
@@ -60,8 +60,9 @@ export function ApplicantPage() {
           unread={false}
           onOpenMenu={() => setMenuOpen(true)}
           onOpenEvents={() => undefined}
+          date={snapshot.date}
           showEvents={false}
-          roleSwitcher={<RoleSwitcher />}
+          roleSwitcher={<LogoutButton />}
         />
         <main className={styles.workspace}>
           <div className={styles.pageHeading}>

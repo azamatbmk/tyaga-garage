@@ -3,7 +3,7 @@ type ApiErrorBody = {
 };
 
 function filenameFromDisposition(header: string | null) {
-  let raw = "tyaga-smena.xlsx";
+  let raw = "tyaga.xlsx";
 
   if (header) {
     const encoded = header.match(/filename\*=UTF-8''([^;]+)/i);
@@ -20,17 +20,17 @@ function filenameFromDisposition(header: string | null) {
   }
 
   const base = raw.replace(/^.*[/\\]/, "").replace(/[^\w.\-]+/g, "");
-  return base.toLowerCase().endsWith(".xlsx") && base.length <= 80 ? base : "tyaga-smena.xlsx";
+  return base.toLowerCase().endsWith(".xlsx") && base.length <= 80 ? base : "tyaga.xlsx";
 }
 
 async function readError(response: Response) {
   const body = (await response.json().catch(() => ({}))) as ApiErrorBody;
   const message = Array.isArray(body.message) ? body.message.join(". ") : body.message;
-  return message || "Не удалось выгрузить смену";
+  return message || "Не удалось выгрузить таблицу";
 }
 
 export async function downloadGarageExcel() {
-  const response = await fetch("/api/garage/export");
+  const response = await fetch("/api/garage/export", { credentials: "include" });
   if (!response.ok) {
     throw new Error(await readError(response));
   }

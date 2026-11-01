@@ -14,7 +14,7 @@ export function ExportGarageButton() {
       onClick={download}
       disabled={busy}
       aria-busy={busy}
-      aria-label="Выгрузить смену в Excel"
+      aria-label="Выгрузить в Excel"
     >
       <Download size={18} />
       {busy ? "Выгружаем…" : "В Excel"}

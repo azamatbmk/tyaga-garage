@@ -15,6 +15,8 @@ export const TEST_DRIVERS: Driver[] = [
     licenseSeries: '15 АА',
     licenseNumber: '100001',
     licenseIssuedAt: '2020-01-01',
+    licenseExpiresAt: '2028-01-01',
+    medicalExamExpiresAt: '2028-01-01',
     snils: '000-000-000 00',
   },
   {
@@ -25,6 +27,8 @@ export const TEST_DRIVERS: Driver[] = [
     licenseSeries: '15 АВ',
     licenseNumber: '100002',
     licenseIssuedAt: '2020-01-01',
+    licenseExpiresAt: '2028-01-01',
+    medicalExamExpiresAt: '2028-01-01',
     snils: '000-000-000 01',
   },
 ];
@@ -43,6 +47,7 @@ export const TEST_FLEET: Vehicle[] = [
     fuel: 80,
     hours: 100,
     capacity: '1 м³',
+    inspectionExpiresAt: '2028-01-01',
   },
   {
     id: '05',
@@ -57,6 +62,7 @@ export const TEST_FLEET: Vehicle[] = [
     fuel: 90,
     hours: 50,
     capacity: '0,5 м³',
+    inspectionExpiresAt: '2028-01-01',
   },
   {
     id: '06',
@@ -71,6 +77,7 @@ export const TEST_FLEET: Vehicle[] = [
     fuel: 40,
     hours: 200,
     capacity: '3 м³',
+    inspectionExpiresAt: '2028-01-01',
   },
   {
     id: '11',
@@ -85,6 +92,7 @@ export const TEST_FLEET: Vehicle[] = [
     fuel: 70,
     hours: 80,
     capacity: '2 м³',
+    inspectionExpiresAt: '2028-01-01',
   },
 ];
 

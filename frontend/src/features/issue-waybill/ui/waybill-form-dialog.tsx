@@ -82,6 +82,7 @@ export function WaybillFormDialog({
         <h2 id="waybill-form-title">{mode === "create" ? "Выдать путевой" : "Изменить путевой"}</h2>
         <p className={styles.description}>
           Срок действия — любой период. Начальный километраж вводится вручную (приказ № 390).
+          Права, медосмотр и техосмотр должны покрывать весь срок листа.
         </p>
         <form onSubmit={handleSubmit} className={styles.form}>
           {mode === "create" ? (

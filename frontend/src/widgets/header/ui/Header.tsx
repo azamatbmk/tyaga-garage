@@ -4,6 +4,16 @@ import { DISPATCHER_NAV, type WorkspaceSection } from "@/shared/config";
 import { Avatar } from "@/shared/ui";
 import styles from "@/shared/styles/layout.module.css";
 
+function formatDay(iso: string) {
+  const [year, month, day] = iso.split("-").map(Number);
+  if (!year || !month || !day) return iso;
+  return new Intl.DateTimeFormat("ru-RU", {
+    day: "numeric",
+    month: "long",
+    timeZone: "UTC",
+  }).format(new Date(Date.UTC(year, month - 1, day)));
+}
+
 export function Header({
   view,
   viewLabel,
@@ -12,6 +22,7 @@ export function Header({
   onOpenEvents,
   onOpenTeam,
   showEvents = true,
+  date,
   roleSwitcher,
 }: {
   view: WorkspaceSection;
@@ -21,6 +32,7 @@ export function Header({
   onOpenEvents: () => void;
   onOpenTeam?: () => void;
   showEvents?: boolean;
+  date?: string;
   roleSwitcher?: ReactNode;
 }) {
   const label =
@@ -38,12 +50,14 @@ export function Header({
       </div>
       <div className={styles.topbarRight}>
         {roleSwitcher}
-        <span className={styles.topbarDate}>
-          <CalendarDays size={15} />
-          Смена 08:00–20:00
-        </span>
+        {date && (
+          <span className={styles.topbarDate}>
+            <CalendarDays size={15} />
+            {formatDay(date)}
+          </span>
+        )}
         {showEvents && (
-          <button className={styles.notification} aria-label="Открыть события смены" onClick={onOpenEvents}>
+          <button className={styles.notification} aria-label="Открыть события" onClick={onOpenEvents}>
             <Bell size={20} />
             {unread && <span className={styles.notificationDot} />}
           </button>

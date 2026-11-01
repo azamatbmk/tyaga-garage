@@ -313,6 +313,22 @@ const SEED_BRANCH_FLEET: {
   },
 ];
 
+/** Демо-дата гаража — 2026-09-12. Часть сроков уже вышла, часть уложится в 30 дней. */
+const DOCUMENT_DATES: Record<
+  string,
+  { licenseExpiresAt: string; medicalExamExpiresAt: string; inspectionExpiresAt: string }
+> = {
+  '01': { licenseExpiresAt: '2026-10-02', medicalExamExpiresAt: '2027-03-01', inspectionExpiresAt: '2027-01-15' },
+  '02': { licenseExpiresAt: '2026-09-01', medicalExamExpiresAt: '2027-01-01', inspectionExpiresAt: '2027-04-01' },
+  '03': { licenseExpiresAt: '2027-02-01', medicalExamExpiresAt: '2026-09-20', inspectionExpiresAt: '2027-05-01' },
+  '04': { licenseExpiresAt: '2026-10-05', medicalExamExpiresAt: '2027-08-01', inspectionExpiresAt: '2026-08-01' },
+  '05': { licenseExpiresAt: '2028-01-01', medicalExamExpiresAt: '2028-01-01', inspectionExpiresAt: '2028-01-01' },
+  '06': { licenseExpiresAt: '2027-06-01', medicalExamExpiresAt: '2027-06-01', inspectionExpiresAt: '2026-10-01' },
+  '07': { licenseExpiresAt: '2027-11-01', medicalExamExpiresAt: '2026-09-05', inspectionExpiresAt: '2027-09-01' },
+  '08': { licenseExpiresAt: '2026-10-12', medicalExamExpiresAt: '2027-12-01', inspectionExpiresAt: '2027-12-01' },
+  '09': { licenseExpiresAt: '2027-04-01', medicalExamExpiresAt: '2027-04-01', inspectionExpiresAt: '2026-09-11' },
+};
+
 export const INITIAL_DRIVERS: Driver[] = SEED_BRANCH_FLEET.map((item) => ({
   id: `d-${item.id}`,
   fullName: item.driver,
@@ -321,6 +337,8 @@ export const INITIAL_DRIVERS: Driver[] = SEED_BRANCH_FLEET.map((item) => ({
   licenseSeries: '15 АА',
   licenseNumber: `10${item.id}01`,
   licenseIssuedAt: '2020-01-01',
+  licenseExpiresAt: DOCUMENT_DATES[item.id]?.licenseExpiresAt ?? '2028-01-01',
+  medicalExamExpiresAt: DOCUMENT_DATES[item.id]?.medicalExamExpiresAt ?? '2028-01-01',
   snils: `000-000-0${item.id} 00`,
 }));
 
@@ -337,6 +355,7 @@ export const INITIAL_FLEET: Vehicle[] = SEED_BRANCH_FLEET.map((item) => ({
   fuel: item.fuel,
   hours: item.hours,
   capacity: item.capacity,
+  inspectionExpiresAt: DOCUMENT_DATES[item.id]?.inspectionExpiresAt ?? '2028-01-01',
 }));
 
 export const INITIAL_JOBS: Job[] = [

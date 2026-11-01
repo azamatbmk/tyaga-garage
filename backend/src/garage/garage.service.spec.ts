@@ -1,11 +1,22 @@
-import { BadRequestException } from '@nestjs/common';
+import { BadRequestException, ForbiddenException, UnauthorizedException } from '@nestjs/common';
+import { actorFromStaff, type Actor } from './actor.js';
 import { GarageService } from './garage.service.js';
+import { DEMO_PASSWORD } from './password.js';
+import { DEMO_STAFF } from './seed.js';
 import {
   TEST_DRIVERS,
   TEST_FLEET,
   TEST_REQUESTS,
   TEST_WAYBILLS,
 } from './test-fixtures.js';
+
+function asActor(id: string): Actor {
+  const user = DEMO_STAFF.find((item) => item.id === id);
+  if (!user) throw new Error(id);
+  return actorFromStaff(user);
+}
+
+const TU = asActor('u-senior-dispatcher');
 
 function serviceWithFixtures() {
   const service = new GarageService();
@@ -39,7 +50,7 @@ describe('GarageService', () => {
   });
 
   it('assigns a ready vehicle of the matching category', () => {
-    const snapshot = service.assignRequest(1049, '05');
+    const snapshot = service.assignRequest(1049, '05', TU);
     const request = snapshot.requests.find((item) => item.id === 1049);
     const vehicle = snapshot.fleet.find((item) => item.id === '05');
 
@@ -49,15 +60,15 @@ describe('GarageService', () => {
   });
 
   it('rejects an already assigned request', () => {
-    service.assignRequest(1049, '05');
-    expect(() => service.assignRequest(1049, '05')).toThrow(BadRequestException);
+    service.assignRequest(1049, '05', TU);
+    expect(() => service.assignRequest(1049, '05', TU)).toThrow(BadRequestException);
   });
 
   it('rejects assigning a vehicle from another branch', () => {
-    expect(() => service.assignRequest(1049, '11')).toThrow(BadRequestException);
+    expect(() => service.assignRequest(1049, '11', TU)).toThrow(BadRequestException);
   });
 
-  it('creates a request inside the shift window', () => {
+  it('creates a request for any time of day', () => {
     const snapshot = service.createRequest({
       title: 'Проба котлована',
       location: 'ЖК Тест',
@@ -65,7 +76,7 @@ describe('GarageService', () => {
       start: '13:00',
       end: '17:00',
       urgent: false,
-    });
+    }, asActor('u-dept'));
 
     expect(snapshot.requests[0]).toMatchObject({
       id: 1051,
@@ -74,26 +85,43 @@ describe('GarageService', () => {
     });
   });
 
+  it('accepts a request in the evening', () => {
+    const snapshot = service.createRequest({
+      title: 'Вечерние работы',
+      location: 'База',
+      category: 'Экскаватор-погрузчик',
+      start: '21:00',
+      end: '23:30',
+      urgent: false,
+    }, asActor('u-dept'));
+
+    expect(snapshot.requests[0]).toMatchObject({
+      title: 'Вечерние работы',
+      start: 21,
+      end: 23.5,
+    });
+  });
+
   it('rejects an invalid clock time', () => {
     expect(() =>
       service.createRequest({
-        title: 'Ночная смена',
+        title: 'Ночные работы',
         location: 'База',
         category: 'Экскаватор-погрузчик',
         start: '08:99',
         end: '17:00',
         urgent: false,
-      }),
+      }, asActor('u-dept')),
     ).toThrow(BadRequestException);
   });
 
   it('returns a vehicle from service to the ready pool', () => {
-    const snapshot = service.finishService('06');
+    const snapshot = service.finishService('06', TU);
     expect(snapshot.fleet.find((item) => item.id === '06')?.status).toBe('ready');
   });
 
   it('reassigns a driver on a vehicle', () => {
-    const snapshot = service.assignDriver('01', { driverId: 'd02' });
+    const snapshot = service.assignDriver('01', { driverId: 'd02' }, TU);
     const vehicle = snapshot.fleet.find((item) => item.id === '01');
     expect(vehicle?.driverId).toBe('d02');
     expect(vehicle?.driver).toBe('Другой Водитель');
@@ -107,8 +135,7 @@ describe('GarageService', () => {
       start: '13:00',
       end: '17:00',
       urgent: false,
-      creatorId: 'u-mechanic',
-    });
+    }, asActor('u-mechanic'));
     expect(snapshot.requests[0]).toMatchObject({
       creatorId: 'u-mechanic',
       branchId: 'b-vlad',
@@ -123,9 +150,8 @@ describe('GarageService', () => {
       start: '13:00',
       end: '17:00',
       urgent: false,
-      creatorId: 'u-senior-dispatcher',
       branchId: 'b-prav',
-    });
+    }, TU);
     expect(snapshot.requests[0]).toMatchObject({
       creatorId: 'u-senior-dispatcher',
       branchId: 'b-prav',
@@ -142,8 +168,7 @@ describe('GarageService', () => {
         start: '13:00',
         end: '17:00',
         urgent: false,
-        creatorId: 'u-senior-dispatcher',
-      }),
+      }, TU),
     ).toThrow(BadRequestException);
   });
 
@@ -156,10 +181,9 @@ describe('GarageService', () => {
         start: '13:00',
         end: '17:00',
         urgent: false,
-        creatorId: 'u-senior-dispatcher',
         branchId: 'b-prav',
         preferredVehicleId: '06',
-      }),
+      }, TU),
     ).toThrow(BadRequestException);
   });
 
@@ -170,7 +194,7 @@ describe('GarageService', () => {
       validTo: '2026-09-20',
       odometerStart: 50100,
       messageKind: 'пригородное',
-    });
+    }, TU);
     expect(snapshot.waybills[0]).toMatchObject({
       vehicleId: '05',
       validFrom: '2026-09-15',
@@ -186,7 +210,7 @@ describe('GarageService', () => {
       validTo: '2026-09-30',
       odometerStart: 124600,
       odometerEnd: 125000,
-    });
+    }, TU);
     const waybill = snapshot.waybills.find((item) => item.id === 'w-01');
     expect(waybill).toMatchObject({
       validFrom: '2026-09-01',
@@ -196,6 +220,27 @@ describe('GarageService', () => {
     });
   });
 
+  it('rejects a waybill when a document does not cover the period', () => {
+    service.loadSeed({
+      fleet: TEST_FLEET.map((item) =>
+        item.id === '05' ? { ...item, inspectionExpiresAt: '2026-09-16' } : item,
+      ),
+      drivers: TEST_DRIVERS.map((item) =>
+        item.id === 'd01' ? { ...item, licenseExpiresAt: '2026-09-10' } : item,
+      ),
+      requests: TEST_REQUESTS,
+    });
+
+    expect(() =>
+      service.createWaybill({
+        vehicleId: '05',
+        validFrom: '2026-09-15',
+        validTo: '2026-09-20',
+        odometerStart: 100,
+      }, TU),
+    ).toThrow(/права Тест Водитель/);
+  });
+
   it('rejects inverted waybill period', () => {
     expect(() =>
       service.createWaybill({
@@ -203,7 +248,7 @@ describe('GarageService', () => {
         validFrom: '2026-09-20',
         validTo: '2026-09-15',
         odometerStart: 100,
-      }),
+      }, TU),
     ).toThrow(BadRequestException);
   });
 
@@ -215,7 +260,8 @@ describe('GarageService', () => {
       plate: 'А 123 АА · 15',
       branchId: 'b-vlad',
       capacity: 'Ковш 1 м³',
-    });
+      inspectionExpiresAt: '2028-01-01',
+    }, TU);
     expect(snapshot.fleet[0]).toMatchObject({
       name: 'JCB 3CX',
       category: 'Экскаватор-погрузчик',
@@ -226,6 +272,34 @@ describe('GarageService', () => {
     expect(snapshot.drivers.some((item) => item.id === 'd-unassigned')).toBe(true);
   });
 
+  it('hides other branches and rejects a foreign driver or a fake date', () => {
+    const prav = asActor('u-dispatcher-prav');
+    const snapshot = service.getSnapshot(prav);
+    expect(snapshot.branches.map((item) => item.id)).toEqual(['b-prav']);
+    expect(snapshot.fleet.every((item) => item.branchId === 'b-prav')).toBe(true);
+    expect(() => service.assignDriver('06', { driverId: 'd01' }, prav)).toThrow(
+      /другим филиалом/,
+    );
+    expect(() =>
+      service.createVehicle({
+        name: 'Новая',
+        category: 'Самосвал',
+        plate: 'Х 100 ХХ 15',
+        branchId: 'b-prav',
+        inspectionExpiresAt: '2026-02-31',
+      }, prav),
+    ).toThrow(/техосмотра/);
+  });
+
+  it('rejects a foreign branch and a wrong password', () => {
+    expect(() => service.assignRequest(1049, '05', asActor('u-dispatcher-prav'))).toThrow(
+      ForbiddenException,
+    );
+    expect(() => service.openSession('u-mechanic', 'не-тот')).toThrow(UnauthorizedException);
+    const sessionId = service.openSession('u-mechanic', DEMO_PASSWORD);
+    expect(service.actorBySession(sessionId)?.id).toBe('u-mechanic');
+  });
+
   it('rejects duplicate plate', () => {
     const empty = new GarageService();
     empty.createVehicle({
@@ -233,14 +307,16 @@ describe('GarageService', () => {
       category: 'Самосвал',
       plate: 'М 001 ММ 15',
       branchId: 'b-vlad',
-    });
+      inspectionExpiresAt: '2028-01-01',
+    }, TU);
     expect(() =>
       empty.createVehicle({
         name: 'B',
         category: 'Самосвал',
-        plate: 'м 001 мм 15',
-        branchId: 'b-prav',
-      }),
+      plate: 'м 001 мм 15',
+      branchId: 'b-prav',
+      inspectionExpiresAt: '2028-01-01',
+    }, TU),
     ).toThrow(BadRequestException);
   });
 });

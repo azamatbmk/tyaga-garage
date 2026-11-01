@@ -13,11 +13,11 @@ export function useExportGarage() {
     setBusy(true);
     try {
       const filename = await downloadGarageExcel();
-      showToast({ kind: "success", title: `Смена выгружена: ${filename}` });
+      showToast({ kind: "success", title: `Таблица выгружена: ${filename}` });
     } catch (err) {
       showToast({
         kind: "error",
-        title: err instanceof Error ? err.message : "Не удалось выгрузить смену",
+        title: err instanceof Error ? err.message : "Не удалось выгрузить таблицу",
       });
     } finally {
       setBusy(false);

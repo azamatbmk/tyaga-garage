@@ -30,16 +30,33 @@ describe('Garage API (e2e)', () => {
       .expect({ ok: true, service: 'tyaga-api' });
   });
 
-  it('/api/garage (GET)', async () => {
-    const response = await request(app.getHttpServer()).get('/api/garage');
+  it('/api/garage (GET) requires a session', async () => {
+    const anonymous = await request(app.getHttpServer()).get('/api/garage');
+    expect(anonymous.status).toBe(401);
+
+    const login = await request(app.getHttpServer())
+      .post('/api/auth/login')
+      .send({ staffId: 'u-senior-dispatcher', password: 'tyaga-demo' });
+    expect(login.status).toBe(201);
+    const cookie = login.headers['set-cookie'];
+    expect(cookie).toBeTruthy();
+
+    const response = await request(app.getHttpServer())
+      .get('/api/garage')
+      .set('Cookie', cookie!);
     expect(response.status).toBe(200);
-    expect(response.body.fleet).toHaveLength(12);
-    expect(response.body.requests).toHaveLength(3);
+    expect(response.body.fleet).toHaveLength(9);
+    expect(response.body.branches).toHaveLength(9);
   });
 
   it('/api/garage/export (GET)', async () => {
+    const login = await request(app.getHttpServer())
+      .post('/api/auth/login')
+      .send({ staffId: 'u-senior-dispatcher', password: 'tyaga-demo' });
+    const cookie = login.headers['set-cookie'];
     const response = await request(app.getHttpServer())
       .get('/api/garage/export')
+      .set('Cookie', cookie!)
       .buffer(true)
       .parse((res, callback) => {
         const chunks: Buffer[] = [];
@@ -52,7 +69,7 @@ describe('Garage API (e2e)', () => {
       'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
     );
     expect(response.headers['content-disposition']).toContain(
-      'tyaga-smena-2026-09-12.xlsx',
+      'tyaga-2026-09-12.xlsx',
     );
     expect(response.body.subarray(0, 2).toString()).toBe('PK');
   });

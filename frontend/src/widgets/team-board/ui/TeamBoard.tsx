@@ -1,4 +1,4 @@
-import { ArrowUpRight, Clock3, Radio } from "lucide-react";
+import { ArrowUpRight, Clock3 } from "lucide-react";
 import type { Dispatcher } from "@/entities/garage";
 import { StatusBadge, type Vehicle } from "@/entities/vehicle";
 import { Avatar, ui } from "@/shared/ui";
@@ -19,9 +19,6 @@ export function TeamBoard({
     <>
       <div className={styles.sectionTitle}>
         <h2>Диспетчеры</h2>
-        <span className={styles.subtleBadge}>
-          <Radio size={14} />3 на смене
-        </span>
       </div>
       <div className={styles.dispatchers}>
         {dispatchers.map((dispatcher, index) => (
@@ -57,7 +54,6 @@ export function TeamBoard({
               <th>Сотрудник</th>
               <th>Техника</th>
               <th>Занятость</th>
-              <th>Смена</th>
               <th>
                 <span className={ui.srOnly}>Карточка</span>
               </th>
@@ -79,7 +75,6 @@ export function TeamBoard({
                 <td>
                   <StatusBadge status={vehicle.status} />
                 </td>
-                <td className={ui.mono}>08:00–20:00</td>
                 <td>
                   <button
                     className={ui.iconButton}
