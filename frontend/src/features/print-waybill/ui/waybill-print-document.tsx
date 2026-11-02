@@ -39,10 +39,15 @@ export function WaybillPrintDocument({ waybill }: { waybill: Waybill }) {
       : `${formatDate(waybill.validFrom)} — ${formatDate(waybill.validTo)}`;
 
   return (
-    <article className={styles.sheet} aria-label={`Путевой лист ${waybill.id}`}>
+    <article className={styles.sheet} aria-label={`Путевой лист № ${waybill.number}`}>
       <p className={styles.org}>{waybill.issuerName}</p>
-      <h1>Путевой лист</h1>
-      <p className={styles.sub}>Срок действия: {validity}</p>
+      <h1>Путевой лист № {waybill.number}</h1>
+      <p className={styles.sub}>
+        {waybill.requestId != null
+          ? `Заявка № ${waybill.requestId}${waybill.requestTitle ? ` · ${waybill.requestTitle}` : ""}. `
+          : ""}
+        Срок действия: {validity}
+      </p>
       <p className={styles.basis}>Состав сведений — приказ Минтранса России от 28.09.2022 № 390</p>
 
       <Section

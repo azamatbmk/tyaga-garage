@@ -2,7 +2,7 @@ import type { GarageSnapshot } from "@/entities/garage";
 import { apiRequest } from "@/shared/api";
 
 export type WaybillWriteBody = {
-  vehicleId: string;
+  requestId: number;
   validFrom: string;
   validTo: string;
   odometerStart: number;

@@ -483,12 +483,26 @@ export class GarageService {
     assertPeriod(dto.validFrom, dto.validTo);
     assertOdometer(dto.odometerStart, dto.odometerEnd);
 
-    const vehicle = this.fleet.find((item) => item.id === dto.vehicleId);
-    if (!vehicle) {
-      throw new NotFoundException('Техника не найдена');
+    const request = this.requests.find((item) => item.id === dto.requestId);
+    if (!request) {
+      throw new NotFoundException('Заявка не найдена');
+    }
+    this.assertScope(actor, request.branchId);
+    if (!request.assigned) {
+      throw new BadRequestException('Сначала назначьте технику на заявку');
+    }
+    if (this.waybills.some((item) => item.requestId === request.id)) {
+      throw new BadRequestException('По этой заявке путевой уже выдан');
     }
 
-    this.assertScope(actor, vehicle.branchId);
+    const vehicle = this.fleet.find((item) => item.id === request.assigned);
+    if (!vehicle) {
+      throw new BadRequestException('Назначенная техника не найдена');
+    }
+    if (vehicle.branchId !== request.branchId) {
+      throw new BadRequestException('Техника заявки из другого филиала');
+    }
+
     const driver = this.drivers.find((item) => item.id === vehicle.driverId);
     if (!driver) {
       throw new BadRequestException('У машины не закреплён водитель');
@@ -502,10 +516,14 @@ export class GarageService {
       this.branches.find((item) => item.id === vehicle.branchId) ??
       this.branches[0] ??
       DEMO_BRANCH;
+    const number = this.nextWaybillNumber(vehicle.branchId);
     const id = `w-${Date.now().toString(36)}`;
     const departureAt = `${dto.validFrom}T08:00:00`;
     const waybill: Waybill = {
       id,
+      number,
+      requestId: request.id,
+      requestTitle: request.title,
       vehicleId: vehicle.id,
       driverId: driver.id,
       branchId: vehicle.branchId,
@@ -541,8 +559,8 @@ export class GarageService {
     this.waybills = [waybill, ...this.waybills];
     this.record(
       actor,
-      `Выдан путевой ${vehicle.name}`,
-      `${dto.validFrom}–${dto.validTo} · километраж ${dto.odometerStart} км`,
+      `Выдан путевой № ${number}`,
+      `${request.title} · ${vehicle.name} · ${dto.validFrom}–${dto.validTo}`,
       'ready',
       vehicle.branchId,
     );
@@ -668,6 +686,14 @@ export class GarageService {
   ) {
     this.addEvent(title, `${detail} · ${actor.name}`, type, branchId);
     this.pendingAudit = { staffId: actor.id, action: title, detail };
+  }
+
+  private nextWaybillNumber(branchId: string) {
+    const used = this.waybills
+      .filter((item) => item.branchId === branchId)
+      .map((item) => item.number)
+      .filter((value) => Number.isInteger(value) && value > 0);
+    return (used.length ? Math.max(...used) : 0) + 1;
   }
 
   private assertDriverInBranch(driverId: string, branchId: string, actor: Actor) {

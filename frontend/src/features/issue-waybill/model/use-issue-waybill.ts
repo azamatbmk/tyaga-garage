@@ -13,10 +13,12 @@ export function useIssueWaybill() {
   const [open, setOpen] = useState(false);
   const [mode, setMode] = useState<"create" | "edit">("create");
   const [editing, setEditing] = useState<Waybill | null>(null);
+  const [requestId, setRequestId] = useState<number | null>(null);
 
-  function startCreate() {
+  function startCreate(nextRequestId?: number) {
     setMode("create");
     setEditing(null);
+    setRequestId(nextRequestId ?? null);
     setOpen(true);
   }
 
@@ -36,6 +38,10 @@ export function useIssueWaybill() {
     const odometerEndRaw = values.odometerEnd.trim();
     const odometerEnd = odometerEndRaw === "" ? null : Number(odometerEndRaw);
 
+    if (mode === "create" && (!Number.isInteger(values.requestId) || values.requestId < 1)) {
+      showToast({ kind: "error", title: "Выберите назначенную заявку" });
+      return;
+    }
     if (!Number.isInteger(odometerStart) || odometerStart < 0) {
       showToast({ kind: "error", title: "Укажите целое число километража при выпуске" });
       return;
@@ -49,7 +55,7 @@ export function useIssueWaybill() {
       const next =
         mode === "create"
           ? await createWaybill({
-              vehicleId: values.vehicleId,
+              requestId: values.requestId,
               validFrom: values.validFrom,
               validTo: values.validTo,
               odometerStart,
@@ -77,5 +83,5 @@ export function useIssueWaybill() {
     }
   }
 
-  return { open, mode, editing, startCreate, startEdit, close, submit };
+  return { open, mode, editing, requestId, startCreate, startEdit, close, submit };
 }

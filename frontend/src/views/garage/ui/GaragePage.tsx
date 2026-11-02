@@ -116,6 +116,12 @@ export function GaragePage() {
     ? filterSnapshotByBranch(snapshot, persona.branchId)
     : snapshot;
   const pending = pendingRequests(view.requests);
+  const issuedRequestIds = new Set(
+    view.waybills.flatMap((item) => (item.requestId != null ? [item.requestId] : [])),
+  );
+  const waybillRequests = view.requests.filter(
+    (item) => item.assigned && !issuedRequestIds.has(item.id),
+  );
   const documentAlerts = expiringDocuments(view);
   const serviceCount = countByStatus(view.fleet).service;
   const activeVehicle = view.fleet.find((vehicle) => vehicle.id === selected) ?? null;
@@ -168,7 +174,7 @@ export function GaragePage() {
             <div className={styles.pageActions}>
               <ExportGarageButton />
               {activeSection === "fleet" && fleetTab === "waybills" ? (
-                <button type="button" className={ui.primaryButton} onClick={waybillForm.startCreate}>
+                <button type="button" className={ui.primaryButton} onClick={() => waybillForm.startCreate()}>
                   <Plus size={19} />
                   Выдать путевой
                 </button>
@@ -242,6 +248,8 @@ export function GaragePage() {
               {fleetTab === "waybills" && (
                 <WaybillsBoard
                   waybills={view.waybills}
+                  branches={view.branches}
+                  showBranch={isTu}
                   onPrint={print.printWaybill}
                   onEdit={waybillForm.startEdit}
                 />
@@ -264,6 +272,8 @@ export function GaragePage() {
               requests={view.requests}
               filter={requestFilter}
               onFilter={setRequestFilter}
+              issuedRequestIds={issuedRequestIds}
+              onIssue={(request) => waybillForm.startCreate(request.id)}
               onOpen={(request) => (request.assigned ? setSelected(request.assigned) : startAssign(request))}
             />
           )}
@@ -340,10 +350,12 @@ export function GaragePage() {
       <PrintWaybillDialog waybill={print.waybill} onClose={print.close} />
       {waybillForm.open && (
         <WaybillFormDialog
-          key={waybillForm.editing?.id ?? "create-waybill"}
+          key={waybillForm.editing?.id ?? `create-waybill-${waybillForm.requestId ?? "list"}`}
           open={waybillForm.open}
           mode={waybillForm.mode}
+          requests={waybillRequests}
           fleet={view.fleet}
+          requestId={waybillForm.requestId}
           waybill={waybillForm.editing}
           onClose={waybillForm.close}
           onSubmit={waybillForm.submit}

@@ -61,6 +61,9 @@ export type Driver = {
 /** Путевой лист — состав сведений по приказу Минтранса № 390 */
 export type Waybill = {
   id: string;
+  number: number;
+  requestId?: number;
+  requestTitle?: string;
   vehicleId: string;
   driverId: string;
   branchId: string;

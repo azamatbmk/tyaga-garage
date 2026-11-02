@@ -187,21 +187,68 @@ describe('GarageService', () => {
     ).toThrow(BadRequestException);
   });
 
-  it('creates a waybill for any period with manual odometer', () => {
+  it('creates a waybill from an assigned request and keeps its number', () => {
+    service.assignRequest(1049, '05', TU);
     const snapshot = service.createWaybill({
-      vehicleId: '05',
+      requestId: 1049,
       validFrom: '2026-09-15',
       validTo: '2026-09-20',
       odometerStart: 50100,
       messageKind: 'пригородное',
     }, TU);
     expect(snapshot.waybills[0]).toMatchObject({
+      number: 2,
+      requestId: 1049,
+      requestTitle: 'Тестовая заявка',
       vehicleId: '05',
+      driverName: 'Тест Водитель',
       validFrom: '2026-09-15',
       validTo: '2026-09-20',
       odometerStart: 50100,
       messageKind: 'пригородное',
     });
+    service.assignDriver('05', { driverId: 'd02' }, TU);
+    const kept = service.getSnapshot().waybills.find((item) => item.requestId === 1049);
+    expect(kept?.driverName).toBe('Тест Водитель');
+    expect(kept?.number).toBe(2);
+    expect(() =>
+      service.createWaybill({
+        requestId: 1049,
+        validFrom: '2026-09-15',
+        validTo: '2026-09-16',
+        odometerStart: 100,
+      }, TU),
+    ).toThrow(/уже выдан/);
+  });
+
+  it('numbers waybills inside one branch and hides them from another', () => {
+    service.assignRequest(1049, '05', TU);
+    const issued = service.createWaybill({
+      requestId: 1049,
+      validFrom: '2026-09-15',
+      validTo: '2026-09-16',
+      odometerStart: 100,
+    }, TU);
+    const sheet = issued.waybills.find((item) => item.requestId === 1049);
+    expect(sheet?.number).toBe(2);
+    expect(sheet?.branchId).toBe('b-vlad');
+
+    const prav = asActor('u-dispatcher-prav');
+    expect(service.getSnapshot(prav).waybills.some((item) => item.id === sheet?.id)).toBe(false);
+    expect(() =>
+      service.updateWaybill(sheet!.id, { odometerEnd: 200 }, prav),
+    ).toThrow(ForbiddenException);
+  });
+
+  it('rejects a waybill without assigned equipment', () => {
+    expect(() =>
+      service.createWaybill({
+        requestId: 1049,
+        validFrom: '2026-09-15',
+        validTo: '2026-09-16',
+        odometerStart: 100,
+      }, TU),
+    ).toThrow(/назначьте технику/);
   });
 
   it('updates waybill period and odometer', () => {
@@ -231,9 +278,10 @@ describe('GarageService', () => {
       requests: TEST_REQUESTS,
     });
 
+    service.assignRequest(1049, '05', TU);
     expect(() =>
       service.createWaybill({
-        vehicleId: '05',
+        requestId: 1049,
         validFrom: '2026-09-15',
         validTo: '2026-09-20',
         odometerStart: 100,
@@ -244,7 +292,7 @@ describe('GarageService', () => {
   it('rejects inverted waybill period', () => {
     expect(() =>
       service.createWaybill({
-        vehicleId: '05',
+        requestId: 1049,
         validFrom: '2026-09-20',
         validTo: '2026-09-15',
         odometerStart: 100,

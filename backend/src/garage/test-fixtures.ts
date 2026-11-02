@@ -113,6 +113,9 @@ export const TEST_REQUESTS: Request[] = [
 export const TEST_WAYBILLS: Waybill[] = [
   {
     id: 'w-01',
+    number: 1,
+    requestId: 9000,
+    requestTitle: 'Архивная заявка',
     vehicleId: '01',
     driverId: 'd01',
     branchId: 'b-vlad',

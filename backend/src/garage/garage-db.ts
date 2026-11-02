@@ -149,7 +149,10 @@ CREATE TABLE IF NOT EXISTS waybills (
   medical_exam_result TEXT NOT NULL,
   medic_name TEXT NOT NULL,
   carriage_kind TEXT NOT NULL,
-  message_kind TEXT NOT NULL
+  message_kind TEXT NOT NULL,
+  request_id INTEGER,
+  request_title TEXT,
+  number INTEGER NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS jobs (
@@ -227,6 +230,7 @@ export class GarageDatabase {
     this.db.exec(SCHEMA);
     this.ensurePasswordColumn();
     this.ensureDocumentColumns();
+    this.ensureWaybillColumns();
     if (!this.isSeeded()) {
       this.save(initialState(options?.importJson === true));
       this.db
@@ -235,6 +239,7 @@ export class GarageDatabase {
     }
     this.fillMissingPasswords();
     this.fillMissingDocuments();
+    this.fillWaybillNumbers();
   }
 
   close() {
@@ -295,10 +300,40 @@ export class GarageDatabase {
     this.addColumnIfMissing('events', 'branch_id');
   }
 
-  private addColumnIfMissing(table: 'drivers' | 'vehicles' | 'events', column: string) {
+  private ensureWaybillColumns() {
+    this.addColumnIfMissing('waybills', 'request_id', 'INTEGER');
+    this.addColumnIfMissing('waybills', 'request_title', 'TEXT');
+    this.addColumnIfMissing('waybills', 'number', 'INTEGER');
+  }
+
+  private fillWaybillNumbers() {
+    const missing = this.db
+      .prepare(`SELECT id, branch_id FROM waybills WHERE number IS NULL ORDER BY sort_order`)
+      .all() as { id?: string; branch_id?: string }[];
+    if (!missing.length) return;
+    const maxRows = this.db
+      .prepare(
+        `SELECT branch_id, MAX(number) AS n FROM waybills WHERE number IS NOT NULL GROUP BY branch_id`,
+      )
+      .all() as { branch_id?: string; n?: number }[];
+    const next = new Map(maxRows.map((row) => [row.branch_id ?? '', row.n ?? 0]));
+    const update = this.db.prepare(`UPDATE waybills SET number = ? WHERE id = ?`);
+    for (const row of missing) {
+      const branchId = row.branch_id ?? '';
+      const value = (next.get(branchId) ?? 0) + 1;
+      next.set(branchId, value);
+      update.run(value, row.id ?? '');
+    }
+  }
+
+  private addColumnIfMissing(
+    table: 'drivers' | 'vehicles' | 'events' | 'waybills',
+    column: string,
+    type = 'TEXT',
+  ) {
     const columns = this.db.prepare(`PRAGMA table_info(${table})`).all() as { name?: string }[];
     if (columns.some((item) => item.name === column)) return;
-    this.db.exec(`ALTER TABLE ${table} ADD COLUMN ${column} TEXT`);
+    this.db.exec(`ALTER TABLE ${table} ADD COLUMN ${column} ${type}`);
   }
 
   private fillMissingDocuments() {
@@ -690,6 +725,9 @@ const WAYBILL_COLUMNS = [
   'medic_name',
   'carriage_kind',
   'message_kind',
+  'request_id',
+  'request_title',
+  'number',
 ] as const;
 
 function waybillToRow(item: Waybill, sortOrder: number): SqlValue[] {
@@ -726,6 +764,9 @@ function waybillToRow(item: Waybill, sortOrder: number): SqlValue[] {
     item.medicName,
     item.carriageKind,
     item.messageKind,
+    item.requestId ?? null,
+    item.requestTitle ?? null,
+    item.number,
   ];
 }
 
@@ -762,6 +803,9 @@ function waybillFromRow(row: Record<string, SqlValue>): Waybill {
     medicName: text(row, 'medic_name'),
     carriageKind: text(row, 'carriage_kind'),
     messageKind: text(row, 'message_kind') as Waybill['messageKind'],
+    requestId: optionalNum(row, 'request_id'),
+    requestTitle: optionalText(row, 'request_title'),
+    number: num(row, 'number'),
   };
 }
 

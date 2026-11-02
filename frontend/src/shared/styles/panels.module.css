@@ -162,12 +162,24 @@
   gap: 8px;
 }
 
-.requestBottom > span {
+.requestBottom > span:first-child {
   font-size: 0.75rem;
   border: 1px solid #e1ead7;
   color: #7a9665;
   border-radius: 4px;
   padding: 3px 6px;
+}
+
+.requestActions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+}
+
+.issueLink {
+  color: #3f5330;
+  font-size: 0.8125rem;
 }
 
 .roundArrow {

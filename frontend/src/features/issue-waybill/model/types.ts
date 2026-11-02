@@ -1,5 +1,5 @@
 export type WaybillFormValues = {
-  vehicleId: string;
+  requestId: number;
   validFrom: string;
   validTo: string;
   odometerStart: string;

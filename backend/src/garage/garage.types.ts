@@ -108,6 +108,12 @@ export type Request = {
 /** Путевой лист — состав сведений по приказу Минтранса № 390 */
 export type Waybill = {
   id: string;
+  /** Порядковый номер внутри филиала. Не переиспользуется. */
+  number: number;
+  /** Заявка, из которой выпущен лист. */
+  requestId?: number;
+  /** Снимок названия заявки на момент выпуска. */
+  requestTitle?: string;
   vehicleId: string;
   driverId: string;
   branchId: string;

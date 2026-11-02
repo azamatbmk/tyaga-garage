@@ -7,11 +7,13 @@ import type { RequestItem } from "../model";
 export function RequestCard({
   request,
   onOpen,
+  onIssue,
   meta,
   readOnly = false,
 }: {
   request: RequestItem;
   onOpen?: () => void;
+  onIssue?: () => void;
   meta?: string;
   readOnly?: boolean;
 }) {
@@ -49,6 +51,17 @@ export function RequestCard({
       )}
       <div className={styles.requestBottom}>
         <span>{request.category}</span>
+        <span className={styles.requestActions}>
+        {onIssue && (
+          <button
+            type="button"
+            className={styles.issueLink}
+            aria-label={`Выдать путевой по заявке ${request.id}`}
+            onClick={onIssue}
+          >
+            Путевой
+          </button>
+        )}
         {!readOnly && onOpen && (
           <button
             className={styles.roundArrow}
@@ -65,6 +78,7 @@ export function RequestCard({
         {readOnly && (
           <span className={ui.mono}>{request.assigned ? "В работе" : "В очереди"}</span>
         )}
+        </span>
       </div>
     </article>
   );

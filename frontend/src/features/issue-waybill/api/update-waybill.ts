@@ -4,7 +4,7 @@ import type { WaybillWriteBody } from "./create-waybill";
 
 export function updateWaybill(
   id: string,
-  body: Omit<WaybillWriteBody, "vehicleId"> & { vehicleId?: never },
+  body: Omit<WaybillWriteBody, "requestId">,
 ) {
   return apiRequest<GarageSnapshot>(`/api/waybills/${id}`, {
     method: "PATCH",

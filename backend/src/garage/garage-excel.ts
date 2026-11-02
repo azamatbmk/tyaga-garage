@@ -39,6 +39,7 @@ export const GARAGE_EXCEL_SHEETS = [
   'План работ',
   'Команда',
   'События',
+  'Путевые',
 ] as const;
 
 const FORMULA_PREFIX = /^[=+\-@\t\r]/;
@@ -266,6 +267,37 @@ export async function buildGarageExcel(snapshot: GarageSnapshot): Promise<Buffer
       EVENT_LABEL[event.type] ?? event.type,
       event.title,
       event.detail,
+    ]),
+  );
+
+  addSheet(
+    workbook,
+    'Путевые',
+    [
+      '№',
+      'Заявка',
+      'Работы',
+      'Срок с',
+      'Срок по',
+      'Техника',
+      'Госномер',
+      'Водитель',
+      'Километраж',
+      'Возврат, км',
+      'Вид сообщения',
+    ],
+    snapshot.waybills.map((waybill) => [
+      waybill.number,
+      waybill.requestId ?? '—',
+      waybill.requestTitle ?? '—',
+      waybill.validFrom,
+      waybill.validTo,
+      waybill.vehicleBrandModel,
+      waybill.vehiclePlate,
+      waybill.driverName,
+      waybill.odometerStart,
+      waybill.odometerEnd ?? '—',
+      waybill.messageKind,
     ]),
   );
 

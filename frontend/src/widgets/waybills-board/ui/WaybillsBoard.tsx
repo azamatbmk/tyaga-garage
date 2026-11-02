@@ -1,5 +1,5 @@
 import { FileText, Pencil, Printer } from "lucide-react";
-import type { Waybill } from "@/entities/garage";
+import type { Branch, Waybill } from "@/entities/garage";
 import { ui } from "@/shared/ui";
 import styles from "@/shared/styles/panels.module.css";
 
@@ -11,13 +11,19 @@ function formatDate(iso: string) {
 
 export function WaybillsBoard({
   waybills,
+  branches = [],
+  showBranch = false,
   onPrint,
   onEdit,
 }: {
   waybills: Waybill[];
+  branches?: Branch[];
+  showBranch?: boolean;
   onPrint: (waybill: Waybill) => void;
   onEdit: (waybill: Waybill) => void;
 }) {
+  const branchName = (branchId: string) =>
+    branches.find((item) => item.id === branchId)?.name;
   return (
     <>
       <div className={styles.requestsToolbar}>
@@ -29,13 +35,14 @@ export function WaybillsBoard({
         <div className={`${styles.panel} ${ui.empty}`}>
           <FileText size={36} />
           <h3>Путевых пока нет</h3>
-          <p>Выдайте путевой: укажите машину, срок действия и начальный километраж.</p>
+          <p>Сначала назначьте технику на заявку, затем выпустите лист из неё.</p>
         </div>
       ) : (
         <div className={styles.simpleTableWrap}>
           <table className={styles.simpleTable}>
             <thead>
               <tr>
+                <th>№</th>
                 <th>Срок</th>
                 <th>Машина</th>
                 <th>Водитель</th>
@@ -47,6 +54,15 @@ export function WaybillsBoard({
             <tbody>
               {waybills.map((waybill) => (
                 <tr key={waybill.id}>
+                  <td className={ui.mono}>
+                    {waybill.number}
+                    {showBranch && (
+                      <div className={ui.muted}>{branchName(waybill.branchId) ?? waybill.branchId}</div>
+                    )}
+                    {waybill.requestId != null && (
+                      <div className={ui.muted}>заявка {waybill.requestId}</div>
+                    )}
+                  </td>
                   <td className={ui.mono}>
                     {formatDate(waybill.validFrom)}
                     <div className={ui.muted}>— {formatDate(waybill.validTo)}</div>
@@ -78,7 +94,7 @@ export function WaybillsBoard({
                       <button
                         type="button"
                         className={ui.secondaryButton}
-                        aria-label={`Изменить путевой для ${waybill.vehicleBrandModel}`}
+                        aria-label={`Изменить путевой № ${waybill.number}`}
                         onClick={() => onEdit(waybill)}
                       >
                         <Pencil size={16} />
@@ -87,7 +103,7 @@ export function WaybillsBoard({
                       <button
                         type="button"
                         className={ui.secondaryButton}
-                        aria-label={`Распечатать путевой для ${waybill.vehicleBrandModel}`}
+                        aria-label={`Распечатать путевой № ${waybill.number}`}
                         onClick={() => onPrint(waybill)}
                       >
                         <Printer size={16} />

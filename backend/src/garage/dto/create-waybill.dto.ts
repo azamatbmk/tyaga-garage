@@ -7,16 +7,16 @@ import {
   Matches,
   Max,
   Min,
-  MinLength,
   ValidateIf,
 } from 'class-validator';
 
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 
 export class CreateWaybillDto {
-  @IsString()
-  @MinLength(1)
-  vehicleId: string;
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  requestId: number;
 
   @IsString()
   @Matches(DATE_RE)

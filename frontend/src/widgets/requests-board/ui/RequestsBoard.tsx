@@ -8,11 +8,15 @@ export function RequestsBoard({
   filter,
   onFilter,
   onOpen,
+  onIssue,
+  issuedRequestIds,
 }: {
   requests: RequestItem[];
   filter: "pending" | "assigned" | "all";
   onFilter: (value: "pending" | "assigned" | "all") => void;
   onOpen: (request: RequestItem) => void;
+  onIssue?: (request: RequestItem) => void;
+  issuedRequestIds?: ReadonlySet<number>;
 }) {
   const pending = requests.filter((item) => !item.assigned);
   const assigned = requests.filter((item) => item.assigned);
@@ -36,7 +40,16 @@ export function RequestsBoard({
       {visible.length ? (
         <div className={styles.requestsGrid}>
           {visible.map((request) => (
-            <RequestCard key={request.id} request={request} onOpen={() => onOpen(request)} />
+            <RequestCard
+              key={request.id}
+              request={request}
+              onOpen={() => onOpen(request)}
+              onIssue={
+                onIssue && request.assigned && !issuedRequestIds?.has(request.id)
+                  ? () => onIssue(request)
+                  : undefined
+              }
+            />
           ))}
         </div>
       ) : (
