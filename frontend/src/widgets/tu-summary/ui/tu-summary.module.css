@@ -1,0 +1,10 @@
+.stack {
+  display: grid;
+  gap: 32px;
+}
+
+.block h2 {
+  margin: 0 0 12px;
+  font-size: 1.15rem;
+  font-weight: 600;
+}

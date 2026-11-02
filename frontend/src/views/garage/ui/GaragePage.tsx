@@ -40,6 +40,7 @@ import { Sidebar } from "@/widgets/sidebar";
 import { TeamBoard } from "@/widgets/team-board";
 import { TimesheetBoard } from "@/widgets/timesheet-board";
 import { VehicleSheet } from "@/widgets/vehicle-sheet";
+import { TuSummaryBoard } from "@/widgets/tu-summary";
 import { WaybillsBoard } from "@/widgets/waybills-board";
 import styles from "@/shared/styles/layout.module.css";
 
@@ -71,7 +72,7 @@ export function GaragePage() {
   const activeSection =
     section === "waybills" || section === "timesheet" || section === "fuel"
       ? "fleet"
-      : !isTu && section === "branches"
+      : !isTu && (section === "branches" || section === "summary")
         ? "dispatch"
         : section;
 
@@ -141,6 +142,7 @@ export function GaragePage() {
         onNavigate={navigate}
         pending={pending.length}
         documents={documentAlerts.length}
+        attention={pending.length + serviceCount + documentAlerts.length}
         service={serviceCount}
         dispatchers={view.dispatchers}
         persona={persona}
@@ -184,6 +186,7 @@ export function GaragePage() {
                   Добавить технику
                 </button>
               ) : activeSection !== "branches" &&
+                activeSection !== "summary" &&
                 activeSection !== "fleet" &&
                 activeSection !== "documents" ? (
                 <button type="button" className={ui.primaryButton} onClick={create.start}>
@@ -194,6 +197,16 @@ export function GaragePage() {
             </div>
           </div>
 
+          {activeSection === "summary" && (
+            <TuSummaryBoard
+              requests={view.requests}
+              fleet={view.fleet}
+              branches={view.branches}
+              alerts={documentAlerts}
+              onOpenRequest={(request) => startAssign(request)}
+              onSelectVehicle={setSelected}
+            />
+          )}
           {activeSection === "branches" && (
             <GupBranchesBoard
               snapshot={view}

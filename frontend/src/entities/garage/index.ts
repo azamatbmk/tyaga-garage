@@ -1,4 +1,3 @@
-export { getGarage } from "./api/get-garage";
 export { filterSnapshotByBranch } from "./model/filter-by-branch";
 export {
   DOCUMENT_HORIZON_DAYS,

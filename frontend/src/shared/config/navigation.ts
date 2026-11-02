@@ -1,5 +1,6 @@
 export type WorkspaceSection =
   | "branches"
+  | "summary"
   | "dispatch"
   | "fleet"
   | "documents"
@@ -41,6 +42,7 @@ export const FLEET_TAB_COPY: Record<FleetTab, string> = {
 /** Аппарат ТУ РПВВ: операционка + контроль всех филиалов */
 export const GUP_DISPATCHER_NAV: { id: WorkspaceSection; label: string }[] = [
   DISPATCHER_NAV[0],
+  { id: "summary", label: "Сводка" },
   DISPATCHER_NAV[1],
   { id: "branches", label: "Филиалы" },
   ...DISPATCHER_NAV.slice(2),
@@ -55,6 +57,7 @@ export const BRANCH_NAV: { id: WorkspaceSection; label: string }[] = [
 ];
 
 export const PAGE_COPY: Partial<Record<WorkspaceSection, string>> = {
+  summary: "Очередь, простой и сроки по всем филиалам.",
   branches: "Контроль филиалов из ТУ РПВВ: очередь, парк и куда назначена техника.",
   dispatch: "Каждая машина на своём месте. Каждый выезд под контролем.",
   fleet: "Техника, путевые, табель и топливо — всё по парку.",

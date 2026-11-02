@@ -2,6 +2,7 @@ import {
   ArrowUpRight,
   Building2,
   CalendarClock,
+  Gauge,
   ChevronRight,
   ClipboardList,
   Construction,
@@ -22,6 +23,7 @@ const ICONS: Partial<Record<WorkspaceSection, typeof LayoutDashboard>> = {
   dispatch: LayoutDashboard,
   requests: ClipboardList,
   branches: Building2,
+  summary: Gauge,
   fleet: Truck,
   documents: CalendarClock,
   team: Users,
@@ -36,6 +38,7 @@ export function Sidebar({
   onNavigate,
   pending,
   documents = 0,
+  attention = 0,
   service,
   dispatchers,
   persona,
@@ -48,6 +51,7 @@ export function Sidebar({
   onNavigate: (view: WorkspaceSection) => void;
   pending: number;
   documents?: number;
+  attention?: number;
   service: number;
   dispatchers: Dispatcher[];
   persona: DemoPersona;
@@ -92,6 +96,9 @@ export function Sidebar({
             >
               <Icon size={18} />
               <span>{item.label}</span>
+              {item.id === "summary" && attention > 0 && (
+                <b className={styles.navCount}>{attention}</b>
+              )}
               {item.id === "requests" && pending > 0 && <b className={styles.navCount}>{pending}</b>}
               {item.id === "documents" && documents > 0 && (
                 <b className={styles.navCount}>{documents}</b>
